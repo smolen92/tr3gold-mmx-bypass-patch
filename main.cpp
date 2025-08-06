@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * @param *arr pointer to the first element of an array that will be searched
@@ -12,11 +12,11 @@
  * @return position where the sub array start in searched array
  * @return -1 if the sub array wasn't found in searched array
  */
-uint32_t find_sub_array_within_array(uint8_t *search_arr, uint32_t search_arr_size, uint8_t *sub_arr, uint32_t sub_arr_size) {
+uint32_t find_sub_array_within_array(uint8_t *search_arr, int32_t search_arr_size, uint8_t *sub_arr, int32_t sub_arr_size) {
 	
-	for(uint32_t i=0; i < search_arr_size - sub_arr_size; i++) {
+	for(int32_t i=0; i < search_arr_size - sub_arr_size; i++) {
 		int found = 1;	
-		for(uint32_t j=0; j < sub_arr_size; j++) {
+		for(int32_t j=0; j < sub_arr_size; j++) {
 			
 			if(search_arr[i+j] != sub_arr[j]) {
 				found = 0;
@@ -35,30 +35,46 @@ uint32_t find_sub_array_within_array(uint8_t *search_arr, uint32_t search_arr_si
 
 /**
  * @param file pointer to file that will have the bytes replaced
- * @param *target pointer to the array of bytes you want to replace
+ * @param target pointer to the array of bytes you want to replace
  * @param target_size size of the target array
- * @param replace_string array of bytes that will be written
+ * @param replace_string pointer to the array of bytes that will be written
  * @param replace_string_size size of the replace array
+ * @param backup file that will be used for backup of the original file
+ *
+ * @detail backup - use NULL if you don't want to create backup file
  */
-void replace_bytes(FILE* file, uint8_t* target, uint32_t target_size, uint8_t* replace_string, uint32_t replace_string_size) {
-	
-	fseek(file, 0, SEEK_END);
+void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* replace_string, uint32_t replace_string_size, FILE* backup) {
+
+	if(input == NULL) {
+		printf("No file specified\n");
+		return;
+	}
 
 	uint8_t* file_content;
 	uint32_t file_size;
 
-	//get file size a copy content of the file to buffer
-	fseek(file, 0, SEEK_END);
-	file_size = ftell(file);
-	fseek(file, 0, SEEK_SET);
+	//get file size and copy content of the file to buffer
+	fseek(input, 0, SEEK_END);
+	file_size = ftell(input);
+	fseek(input, 0, SEEK_SET);
 	
-	file_content = (uint8_t*)malloc((file_size+1)*sizeof(uint8_t));
+	file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
 	
-	if(fread((void*)file_content, sizeof(uint8_t), file_size, file) != file_size) {
+	if(fread((void*)file_content, sizeof(uint8_t), file_size, input) != file_size) {
 		printf("Error while reading file\n");
 	}
-	file_content[file_size] = '\0';
-	fseek(file, 0, SEEK_SET);
+	fseek(input, 0, SEEK_SET);
+	
+	//create backup of the original file
+	if(backup != NULL) {
+		fwrite(file_content, sizeof(uint8_t), file_size, backup);
+	}
+	else {
+		printf("No backup file will be created. Continue [y/N]: ");
+		/// \todo check input
+		char c = getchar();
+		if( (c != 'y') && (c != 'Y') ) return;
+	}
 
 	//find target in file
 	uint32_t pos = find_sub_array_within_array(file_content, file_size, target, target_size);
@@ -74,8 +90,8 @@ void replace_bytes(FILE* file, uint8_t* target, uint32_t target_size, uint8_t* r
 			printf("multiple target location within file found\n");
 		}
 		else {
-			fseek(file, pos, SEEK_SET);
-			fwrite(replace_string, sizeof(uint8_t), replace_string_size, file);
+			fseek(input, pos, SEEK_SET);
+			fwrite(replace_string, sizeof(uint8_t), replace_string_size, input);
 		}
 
 	}
@@ -83,7 +99,6 @@ void replace_bytes(FILE* file, uint8_t* target, uint32_t target_size, uint8_t* r
 
 }
 
-/// \todo copy original file to backup
 /// \todo check md5 of the original file before patching
 /// \todo readme
 int main(int argc, char **argv) {
@@ -121,10 +136,10 @@ int main(int argc, char **argv) {
 				0xc3, //RET
 				};
 	
-	uint32_t target_size = 24;
-	uint32_t replace_size = 15;
+	int32_t target_size = 24;
+	int32_t replace_size = 15;
 
-	FILE *input, *output;
+	FILE *input, *backup;
 
 	input = fopen(argv[1], "rb+");
 	if(input == NULL) {
@@ -132,10 +147,25 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
-	replace_bytes(input, target, target_size, replace, replace_size);
+	char *backup_file_path;
+	backup_file_path = (char*)malloc((strlen(argv[1])+strlen(".bak"))*sizeof(char));
+	if( backup_file_path == NULL) {
+		printf("Allocation for backup file path failed\n");
+		return 1;
+	}
+	
+	strcpy(backup_file_path, argv[1]);
+	strcpy(&backup_file_path[strlen(argv[1])], ".bak"); 
+
+	backup = fopen(backup_file_path, "wb");
+
+	replace_bytes(input, target, target_size, replace, replace_size, backup);
 
 	fclose(input);
 	input = NULL;
+
+	fclose(backup);
+	backup = NULL;
 
 	return 0;
 
