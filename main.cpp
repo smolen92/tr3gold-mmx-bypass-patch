@@ -100,11 +100,10 @@ void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* 
 }
 
 /// \todo check md5 of the original file before patching
-/// \todo readme
 int main(int argc, char **argv) {
 
 	if(argc < 2) {
-		printf("No file specified\n");
+		printf("Usage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
 		return 1;
 	}
 	
@@ -144,6 +143,7 @@ int main(int argc, char **argv) {
 	input = fopen(argv[1], "rb+");
 	if(input == NULL) {
 		printf("Failed to open file %s\n", argv[1]);
+		perror("Error");
 		return 1;
 	}
 	
@@ -158,6 +158,11 @@ int main(int argc, char **argv) {
 	strcpy(&backup_file_path[strlen(argv[1])], ".bak"); 
 
 	backup = fopen(backup_file_path, "wb");
+	if( backup == NULL ) {
+		printf("Failed to open file %s\n", backup_file_path);
+		perror("Error");
+		return 1;
+	}
 
 	replace_bytes(input, target, target_size, replace, replace_size, backup);
 
