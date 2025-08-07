@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <openssl/evp.h>
 
 /**
  * @param *arr pointer to the first element of an array that will be searched
@@ -71,7 +72,6 @@ void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* 
 	}
 	else {
 		printf("No backup file will be created. Continue [y/N]: ");
-		/// \todo check input
 		char c = getchar();
 		if( (c != 'y') && (c != 'Y') ) return;
 	}
@@ -99,7 +99,70 @@ void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* 
 
 }
 
-/// \todo check md5 of the original file before patching
+/**
+ * @param input file to calculate the md5 sum for
+ *
+ * @return pointer to string containing the md5 sum
+ * @return NULL when error occured
+ *
+ * @details if the function is succesful, string is allocated inside this function, that need to be freed.
+ */
+char* get_md5(FILE* input) {
+	EVP_MD_CTX *mdctx;
+	const EVP_MD *md;
+	unsigned char md_value[EVP_MAX_MD_SIZE];
+	unsigned int md_len;
+
+	md = EVP_get_digestbyname("md5");
+	if (md == NULL) {
+		printf("Unknown message digest md5");
+		return NULL;
+	}
+
+	mdctx = EVP_MD_CTX_new();
+	if (mdctx == NULL) {
+		printf("Message digest create failed.\n");
+		return NULL;
+	}
+
+	if (!EVP_DigestInit_ex2(mdctx, md, NULL)) {
+		printf("Message digest initialization failed.\n");
+		EVP_MD_CTX_free(mdctx);
+		return NULL;
+	}
+
+	int32_t file_buffer_size = 1024;
+	char file_buffer[file_buffer_size];
+	int bytes_read;
+
+	do {
+		bytes_read = fread(file_buffer, sizeof(char), file_buffer_size, input);
+		if (!EVP_DigestUpdate(mdctx, file_buffer, bytes_read) ) {
+			printf("Message digest update failed.\n");
+			EVP_MD_CTX_free(mdctx);
+			return NULL;
+    		}
+
+	} while( bytes_read > 0);
+
+	if (!EVP_DigestFinal_ex(mdctx, md_value, &md_len)) {
+		printf("Message digest finalization failed.\n");
+		EVP_MD_CTX_free(mdctx);
+        	return NULL;
+    	}
+
+	EVP_MD_CTX_free(mdctx);
+
+	char *return_char = (char*)malloc((md_len *2)*sizeof(char));
+
+	for (int i = 0; i < md_len; i++) {
+		sprintf(&return_char[i*2], "%02x", md_value[i]);
+	}
+
+	return return_char;
+}
+
+/// \todo test on windows
 int main(int argc, char **argv) {
 
 	if(argc < 2) {
@@ -137,9 +200,12 @@ int main(int argc, char **argv) {
 	
 	int32_t target_size = 24;
 	int32_t replace_size = 15;
+	
+	/// \todo fill the checksum
+	char compatible_md5sum[] = "0";
 
 	FILE *input, *backup;
-
+	
 	input = fopen(argv[1], "rb+");
 	if(input == NULL) {
 		printf("Failed to open file %s\n", argv[1]);
@@ -163,8 +229,23 @@ int main(int argc, char **argv) {
 		perror("Error");
 		return 1;
 	}
+	
+	char* input_file_md5sum = get_md5(input);
+
+	if( input_file_md5sum == NULL ) {
+		printf("Failed to calculate md5sum for input file\n");
+		return 1;
+	}
+	
+	if( strcmp(compatible_md5sum, input_file_md5sum) != 0) {
+		printf("Input file is not compatible/wasn't tested. Continue? [y/N]: ");
+		char c = getchar();
+		if( (c != 'y') && (c != 'Y') ) return 1;
+	}
 
 	replace_bytes(input, target, target_size, replace, replace_size, backup);
+	
+	free(backup_file_path);
 
 	fclose(input);
 	input = NULL;
