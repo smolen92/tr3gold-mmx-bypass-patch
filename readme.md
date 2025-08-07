@@ -15,7 +15,7 @@ This patch change that the default value is 0, turning this settings off.
 1. Clone this repository
 2. Compile the patch with:
 ```bash
-gcc -o tr3gold-mmx-bypass.exe main.cpp
+gcc -o tr3gold-mmx-bypass.exe main.cpp -lcrypto
 ```
 3. Run the patch with:
 ```bash

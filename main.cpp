@@ -5,6 +5,8 @@
 #include <openssl/evp.h>
 
 /**
+ * @brief find the first occurrence of sub array within array
+ *
  * @param *arr pointer to the first element of an array that will be searched
  * @param arr_size size of searched array
  * @param *sub_arr pointer to the sub array that we want to find
@@ -162,14 +164,44 @@ char* get_md5(FILE* input) {
 	return return_char;
 }
 
-/// \todo test on windows
+/**
+ * @param files array of files to be freed
+ * @param files_count count of files to be freed
+ * @param strings array of strings to be freed
+ * @param strings_count count of strings to be freed
+ */
+void free_resources(FILE** files, uint32_t files_count, char** strings, uint32_t strings_count) {
+	for(int i=0; i < files_count; i++) {
+		fclose(files[i]);
+		files[i] = NULL;
+	}
+
+	for(int i=0; i < strings_count; i++) {
+		free(strings[i]);
+		strings[i] = NULL;
+	}
+}
+
+enum files_names {
+	INPUT,
+	BACKUP,
+	MAX_FILES_NAMES
+};
+
+enum strings_names {
+	BACKUP_FILE_PATH,
+	INPUT_FILE_MD5SUM,
+	MAX_STRINGS_NAME
+};
+
+/// \todo test on windows - it need to install openssl lib - add this to instructions
 int main(int argc, char **argv) {
 
 	if(argc < 2) {
 		printf("Usage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
 		return 1;
 	}
-	
+
 	//target and replace string
 	uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
 				0x5b, // POP EBX
@@ -201,59 +233,67 @@ int main(int argc, char **argv) {
 	int32_t target_size = 24;
 	int32_t replace_size = 15;
 	
-	/// \todo fill the checksum
-	char compatible_md5sum[] = "0";
+	char compatible_md5sum[] = "7c820c372f3ca0b7e97e09cc91a0f033";
 
-	FILE *input, *backup;
-	
-	input = fopen(argv[1], "rb+");
-	if(input == NULL) {
+	FILE *files[MAX_FILES_NAMES];
+	char *strings[MAX_STRINGS_NAME];
+	uint32_t files_count = 0;
+	uint32_t strings_count = 0;
+
+	files[INPUT] = fopen(argv[1], "rb+");
+	if(files[INPUT] == NULL) {
 		printf("Failed to open file %s\n", argv[1]);
 		perror("Error");
 		return 1;
 	}
 	
-	char *backup_file_path;
-	backup_file_path = (char*)malloc((strlen(argv[1])+strlen(".bak"))*sizeof(char));
-	if( backup_file_path == NULL) {
+	files_count++;
+
+	strings[BACKUP_FILE_PATH] = (char*)malloc((strlen(argv[1])+strlen(".bak"))*sizeof(char));
+	if( strings[BACKUP_FILE_PATH] == NULL) {
 		printf("Allocation for backup file path failed\n");
+		free_resources(files, files_count, strings, strings_count);
 		return 1;
 	}
 	
-	strcpy(backup_file_path, argv[1]);
-	strcpy(&backup_file_path[strlen(argv[1])], ".bak"); 
+	strings_count++;
 
-	backup = fopen(backup_file_path, "wb");
-	if( backup == NULL ) {
-		printf("Failed to open file %s\n", backup_file_path);
+	strcpy(strings[BACKUP_FILE_PATH], argv[1]);
+	strcpy(&strings[BACKUP_FILE_PATH][strlen(argv[1])], ".bak"); 
+
+	files[BACKUP] = fopen(strings[BACKUP_FILE_PATH], "ab");
+	if( files[BACKUP] == NULL ) {
+		printf("Failed to open file %s\n", strings[BACKUP_FILE_PATH]);
 		perror("Error");
+		free_resources(files, files_count, strings, strings_count);
 		return 1;
 	}
-	
-	char* input_file_md5sum = get_md5(input);
 
-	if( input_file_md5sum == NULL ) {
+	files_count++;
+
+	strings[INPUT_FILE_MD5SUM] = get_md5(files[INPUT]);
+	if( strings[INPUT_FILE_MD5SUM] == NULL ) {
 		printf("Failed to calculate md5sum for input file\n");
+		free_resources(files, files_count, strings, strings_count);
 		return 1;
 	}
 	
-	if( strcmp(compatible_md5sum, input_file_md5sum) != 0) {
+	strings_count++;
+
+	if( strcmp(compatible_md5sum, strings[INPUT_FILE_MD5SUM]) != 0) {
 		printf("Input file is not compatible/wasn't tested. Continue? [y/N]: ");
 		char c = getchar();
-		if( (c != 'y') && (c != 'Y') ) return 1;
+		if( (c != 'y') && (c != 'Y') ) {
+			free_resources(files, files_count, strings, strings_count);
+			return 1;
+		}
 	}
-
-	replace_bytes(input, target, target_size, replace, replace_size, backup);
 	
-	free(backup_file_path);
-
-	fclose(input);
-	input = NULL;
-
-	fclose(backup);
-	backup = NULL;
-
-	return 0;
+	replace_bytes(files[INPUT], target, target_size, replace, replace_size, files[BACKUP]);
+	
+	free_resources(files, files_count, strings, strings_count);
+	
+	return 1;
 
 }
 
