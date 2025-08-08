@@ -2,8 +2,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <openssl/evp.h>
 
 /**
+ * @brief find the first occurrence of sub array within array
+ *
  * @param *arr pointer to the first element of an array that will be searched
  * @param arr_size size of searched array
  * @param *sub_arr pointer to the sub array that we want to find
@@ -12,7 +15,7 @@
  * @return position where the sub array start in searched array
  * @return -1 if the sub array wasn't found in searched array
  */
-uint32_t find_sub_array_within_array(uint8_t *search_arr, int32_t search_arr_size, uint8_t *sub_arr, int32_t sub_arr_size) {
+uint32_t find_sub_array_within_array(const uint8_t *search_arr, const int32_t search_arr_size, const uint8_t *sub_arr, const int32_t sub_arr_size) {
 	
 	for(int32_t i=0; i < search_arr_size - sub_arr_size; i++) {
 		int found = 1;	
@@ -34,16 +37,16 @@ uint32_t find_sub_array_within_array(uint8_t *search_arr, int32_t search_arr_siz
 }
 
 /**
- * @param file pointer to file that will have the bytes replaced
+ * @param input pointer to file that will have the bytes replaced
+ * @param backup file that will be used for backup of the original file
  * @param target pointer to the array of bytes you want to replace
  * @param target_size size of the target array
  * @param replace_string pointer to the array of bytes that will be written
  * @param replace_string_size size of the replace array
- * @param backup file that will be used for backup of the original file
  *
  * @detail backup - use NULL if you don't want to create backup file
  */
-void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* replace_string, uint32_t replace_string_size, FILE* backup) {
+void replace_bytes(FILE* input, FILE* backup, const uint8_t* target, const uint32_t target_size, const uint8_t* replace_string, const uint32_t replace_string_size) {
 
 	if(input == NULL) {
 		printf("No file specified\n");
@@ -71,7 +74,6 @@ void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* 
 	}
 	else {
 		printf("No backup file will be created. Continue [y/N]: ");
-		/// \todo check input
 		char c = getchar();
 		if( (c != 'y') && (c != 'Y') ) return;
 	}
@@ -99,16 +101,103 @@ void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* 
 
 }
 
-/// \todo check md5 of the original file before patching
+/**
+ * @param input file to calculate the md5 sum for
+ *
+ * @return pointer to string containing the md5 sum
+ * @return NULL when error occured
+ *
+ * @details if the function is succesful, string is allocated inside this function, that need to be freed.
+ */
+char* get_md5(FILE* input) {
+	EVP_MD_CTX *mdctx;
+	const EVP_MD *md;
+	unsigned char md_value[EVP_MAX_MD_SIZE];
+	unsigned int md_len;
+
+	md = EVP_get_digestbyname("md5");
+	if (md == NULL) {
+		printf("Unknown message digest md5");
+		return NULL;
+	}
+
+	mdctx = EVP_MD_CTX_new();
+	if (mdctx == NULL) {
+		printf("Message digest create failed.\n");
+		return NULL;
+	}
+
+	if (!EVP_DigestInit_ex2(mdctx, md, NULL)) {
+		printf("Message digest initialization failed.\n");
+		EVP_MD_CTX_free(mdctx);
+		return NULL;
+	}
+
+	int32_t file_buffer_size = 1024;
+	char file_buffer[file_buffer_size];
+	int bytes_read;
+
+	do {
+		bytes_read = fread(file_buffer, sizeof(char), file_buffer_size, input);
+		if (!EVP_DigestUpdate(mdctx, file_buffer, bytes_read) ) {
+			printf("Message digest update failed.\n");
+			EVP_MD_CTX_free(mdctx);
+			return NULL;
+    		}
+
+	} while( bytes_read > 0);
+
+	if (!EVP_DigestFinal_ex(mdctx, md_value, &md_len)) {
+		printf("Message digest finalization failed.\n");
+		EVP_MD_CTX_free(mdctx);
+        	return NULL;
+    	}
+
+	EVP_MD_CTX_free(mdctx);
+
+	char *return_char = (char*)malloc((md_len *2)*sizeof(char));
+
+	for (int i = 0; i < md_len; i++) {
+		sprintf(&return_char[i*2], "%02x", md_value[i]);
+	}
+
+	return return_char;
+}
+
+/**
+ * @param files array of files to be freed
+ * @param files_count count of files to be freed
+ * @param strings array of strings to be freed
+ * @param strings_count count of strings to be freed
+ */
+void free_resources(FILE** files,const uint32_t files_count, char** strings,const uint32_t strings_count) {
+	for(int i=0; i < files_count; i++) {
+		fclose(files[i]);
+		files[i] = NULL;
+	}
+
+	for(int i=0; i < strings_count; i++) {
+		free(strings[i]);
+		strings[i] = NULL;
+	}
+}
+
+enum files_names {
+	INPUT,
+	BACKUP,
+	MAX_FILES_NAMES
+};
+
+enum strings_names {
+	BACKUP_FILE_PATH,
+	INPUT_FILE_MD5SUM,
+	MAX_STRINGS_NAME
+};
+
 int main(int argc, char **argv) {
 
-	if(argc < 2) {
-		printf("Usage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
-		return 1;
-	}
-	
 	//target and replace string
-	uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
+	const uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
 				0x5b, // POP EBX
 				0x8b, 0xe5, //MOV ESP,EBP
 				0x5d, //POP EBP
@@ -128,51 +217,105 @@ int main(int argc, char **argv) {
 				0x90
 				}; 
 	
-	uint8_t replace[] = { 0xc7, 0x05, 0x50, 0x7c, 0x6c, 0x00, 0x00, 0x00, 0x00, 0x00, //MOV dword ptr[DAT_006c7c50], 0x00
+	const uint8_t replace[] = { 0xc7, 0x05, 0x50, 0x7c, 0x6c, 0x00, 0x00, 0x00, 0x00, 0x00, //MOV dword ptr[DAT_006c7c50], 0x00
 				0x5b, //POP EBX
 				0x8b, 0xe5, //MOV ESP, EBP
 				0x5d, //POP EBP
 				0xc3, //RET
 				};
 	
-	int32_t target_size = 24;
-	int32_t replace_size = 15;
-
-	FILE *input, *backup;
-
-	input = fopen(argv[1], "rb+");
-	if(input == NULL) {
-		printf("Failed to open file %s\n", argv[1]);
-		perror("Error");
-		return 1;
-	}
+	const int32_t target_size = 24;
+	const int32_t replace_size = 15;
 	
-	char *backup_file_path;
-	backup_file_path = (char*)malloc((strlen(argv[1])+strlen(".bak"))*sizeof(char));
-	if( backup_file_path == NULL) {
+	const char compatible_md5sum[] = "7c820c372f3ca0b7e97e09cc91a0f033";
+
+	FILE *files[MAX_FILES_NAMES];
+	char *strings[MAX_STRINGS_NAME];
+	uint32_t files_count = 0;
+	uint32_t strings_count = 0;
+
+	char backup_file_path[100];
+
+	if(argc >= 2) {
+		files[INPUT] = fopen(argv[1], "rb+");
+		strcpy(backup_file_path, argv[1]);
+	}
+	else {
+		const char *executable_path[] = {"tr3gold.exe", 
+						"C:\\Program Files\\Eidos\\Tomb Raider 3 - The Lost Artefact\\tr3gold.exe", 
+						"C:\\Program Files (x86)\\Eidos\\Tomb Raider 3 - The Lost Artefact\\tr3gold.exe"};
+		const int executable_path_count = 3;
+
+	
+		for(int i=0; i < executable_path_count; i++) {
+	
+			files[INPUT] = fopen(executable_path[i], "rb+");
+			if( files[INPUT] != NULL) {
+				strcpy(backup_file_path, executable_path[i]);
+				break;
+			}
+		}
+	}
+
+	if(files[INPUT] == NULL) {
+		if (argc < 2) {
+			perror("Error");
+			printf("Failed to find the file automatically\nUsage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
+		}
+		else {
+			printf("Failed to open file %s\n", argv[1]);
+			perror("Error");
+		}
+		return 1;
+	}	
+	
+	files_count++;
+
+	strings[BACKUP_FILE_PATH] = (char*)malloc((strlen(backup_file_path)+strlen(".bak"))*sizeof(char));
+	if( strings[BACKUP_FILE_PATH] == NULL) {
 		printf("Allocation for backup file path failed\n");
+		free_resources(files, files_count, strings, strings_count);
 		return 1;
 	}
 	
-	strcpy(backup_file_path, argv[1]);
-	strcpy(&backup_file_path[strlen(argv[1])], ".bak"); 
+	strings_count++;
 
-	backup = fopen(backup_file_path, "wb");
-	if( backup == NULL ) {
-		printf("Failed to open file %s\n", backup_file_path);
+	strcpy(strings[BACKUP_FILE_PATH], backup_file_path);
+	strcpy(&strings[BACKUP_FILE_PATH][strlen(backup_file_path)], ".bak"); 
+
+	files[BACKUP] = fopen(strings[BACKUP_FILE_PATH], "ab");
+	if( files[BACKUP] == NULL ) {
+		printf("Failed to open file %s\n", strings[BACKUP_FILE_PATH]);
 		perror("Error");
+		free_resources(files, files_count, strings, strings_count);
 		return 1;
 	}
 
-	replace_bytes(input, target, target_size, replace, replace_size, backup);
+	files_count++;
 
-	fclose(input);
-	input = NULL;
+	strings[INPUT_FILE_MD5SUM] = get_md5(files[INPUT]);
+	if( strings[INPUT_FILE_MD5SUM] == NULL ) {
+		printf("Failed to calculate md5sum for input file\n");
+		free_resources(files, files_count, strings, strings_count);
+		return 1;
+	}
+	
+	strings_count++;
 
-	fclose(backup);
-	backup = NULL;
-
-	return 0;
+	if( strcmp(compatible_md5sum, strings[INPUT_FILE_MD5SUM]) != 0) {
+		printf("Input file is not compatible/wasn't tested. Continue? [y/N]: ");
+		char c = getchar();
+		if( (c != 'y') && (c != 'Y') ) {
+			free_resources(files, files_count, strings, strings_count);
+			return 1;
+		}
+	}
+	
+	replace_bytes(files[INPUT], files[BACKUP], target, target_size, replace, replace_size);
+	
+	free_resources(files, files_count, strings, strings_count);
+	
+	return 1;
 
 }
 
