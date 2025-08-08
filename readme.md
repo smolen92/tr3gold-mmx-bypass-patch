@@ -10,7 +10,7 @@ Unfortunatelly by default the game will turn this feature on and because of it w
 
 This patch change that the default value is 0, turning this settings off.
 
-## Installation Instruction
+## Compilation 
 
 1. Clone this repository
 2. Install OpenSSL for windows

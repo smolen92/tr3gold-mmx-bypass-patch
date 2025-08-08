@@ -234,8 +234,11 @@ int main(int argc, char **argv) {
 	uint32_t files_count = 0;
 	uint32_t strings_count = 0;
 
+	char backup_file_path[100];
+
 	if(argc >= 2) {
 		files[INPUT] = fopen(argv[1], "rb+");
+		strcpy(backup_file_path, argv[1]);
 	}
 	else {
 		const char *executable_path[] = {"tr3gold.exe", 
@@ -247,13 +250,16 @@ int main(int argc, char **argv) {
 		for(int i=0; i < executable_path_count; i++) {
 	
 			files[INPUT] = fopen(executable_path[i], "rb+");
-			if( files[INPUT] != NULL) break;
-
+			if( files[INPUT] != NULL) {
+				strcpy(backup_file_path, executable_path[i]);
+				break;
+			}
 		}
 	}
 
 	if(files[INPUT] == NULL) {
 		if (argc < 2) {
+			perror("Error");
 			printf("Failed to find the file automatically\nUsage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
 		}
 		else {
@@ -265,7 +271,7 @@ int main(int argc, char **argv) {
 	
 	files_count++;
 
-	strings[BACKUP_FILE_PATH] = (char*)malloc((strlen(argv[1])+strlen(".bak"))*sizeof(char));
+	strings[BACKUP_FILE_PATH] = (char*)malloc((strlen(backup_file_path)+strlen(".bak"))*sizeof(char));
 	if( strings[BACKUP_FILE_PATH] == NULL) {
 		printf("Allocation for backup file path failed\n");
 		free_resources(files, files_count, strings, strings_count);
@@ -274,8 +280,8 @@ int main(int argc, char **argv) {
 	
 	strings_count++;
 
-	strcpy(strings[BACKUP_FILE_PATH], argv[1]);
-	strcpy(&strings[BACKUP_FILE_PATH][strlen(argv[1])], ".bak"); 
+	strcpy(strings[BACKUP_FILE_PATH], backup_file_path);
+	strcpy(&strings[BACKUP_FILE_PATH][strlen(backup_file_path)], ".bak"); 
 
 	files[BACKUP] = fopen(strings[BACKUP_FILE_PATH], "ab");
 	if( files[BACKUP] == NULL ) {
