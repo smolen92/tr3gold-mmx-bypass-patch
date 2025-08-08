@@ -26,6 +26,10 @@ Example:
 ```bash
 tr3gold-mmx-bypass.exe "C:\Program Files (x86)\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe"
 ```
+If no argument is entered, the patch will try to find the executable in these location:
+the directory patch is executed
+C:\Program Files\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe
+C:\Program Files (x86)\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe
 
 ### Notes
 - This patch will backup the original executable to a new file with a .bak extension.
