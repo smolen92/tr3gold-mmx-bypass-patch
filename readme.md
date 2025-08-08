@@ -13,11 +13,12 @@ This patch change that the default value is 0, turning this settings off.
 ## Installation Instruction
 
 1. Clone this repository
-2. Compile the patch with:
+2. Install OpenSSL for windows
+3. Compile the patch with:
 ```bash
-gcc -o tr3gold-mmx-bypass.exe main.cpp -lcrypto
+gcc -o tr3gold-mmx-bypass.exe main.cpp -I"C:\Program Files\OpenSSL-Win64\include" -L"C:\Program Files\OpenSSL-Win64\lib\VC\x64\MT -lcrypto
 ```
-3. Run the patch with:
+4. Run the patch with:
 ```bash
 tr3gold-mmx-bypass.exe <path-to-the-executable>
 ```

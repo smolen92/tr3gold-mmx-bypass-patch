@@ -194,7 +194,6 @@ enum strings_names {
 	MAX_STRINGS_NAME
 };
 
-/// \todo test on windows - it need to install openssl lib - add this to instructions
 int main(int argc, char **argv) {
 
 	if(argc < 2) {
