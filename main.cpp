@@ -15,7 +15,7 @@
  * @return position where the sub array start in searched array
  * @return -1 if the sub array wasn't found in searched array
  */
-uint32_t find_sub_array_within_array(uint8_t *search_arr, int32_t search_arr_size, uint8_t *sub_arr, int32_t sub_arr_size) {
+uint32_t find_sub_array_within_array(const uint8_t *search_arr, const int32_t search_arr_size, const uint8_t *sub_arr, const int32_t sub_arr_size) {
 	
 	for(int32_t i=0; i < search_arr_size - sub_arr_size; i++) {
 		int found = 1;	
@@ -37,16 +37,16 @@ uint32_t find_sub_array_within_array(uint8_t *search_arr, int32_t search_arr_siz
 }
 
 /**
- * @param file pointer to file that will have the bytes replaced
+ * @param input pointer to file that will have the bytes replaced
+ * @param backup file that will be used for backup of the original file
  * @param target pointer to the array of bytes you want to replace
  * @param target_size size of the target array
  * @param replace_string pointer to the array of bytes that will be written
  * @param replace_string_size size of the replace array
- * @param backup file that will be used for backup of the original file
  *
  * @detail backup - use NULL if you don't want to create backup file
  */
-void replace_bytes(FILE* input, uint8_t* target, uint32_t target_size, uint8_t* replace_string, uint32_t replace_string_size, FILE* backup) {
+void replace_bytes(FILE* input, FILE* backup, const uint8_t* target, const uint32_t target_size, const uint8_t* replace_string, const uint32_t replace_string_size) {
 
 	if(input == NULL) {
 		printf("No file specified\n");
@@ -170,7 +170,7 @@ char* get_md5(FILE* input) {
  * @param strings array of strings to be freed
  * @param strings_count count of strings to be freed
  */
-void free_resources(FILE** files, uint32_t files_count, char** strings, uint32_t strings_count) {
+void free_resources(FILE** files,const uint32_t files_count, char** strings,const uint32_t strings_count) {
 	for(int i=0; i < files_count; i++) {
 		fclose(files[i]);
 		files[i] = NULL;
@@ -196,13 +196,8 @@ enum strings_names {
 
 int main(int argc, char **argv) {
 
-	if(argc < 2) {
-		printf("Usage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
-		return 1;
-	}
-
 	//target and replace string
-	uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
+	const uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
 				0x5b, // POP EBX
 				0x8b, 0xe5, //MOV ESP,EBP
 				0x5d, //POP EBP
@@ -222,29 +217,51 @@ int main(int argc, char **argv) {
 				0x90
 				}; 
 	
-	uint8_t replace[] = { 0xc7, 0x05, 0x50, 0x7c, 0x6c, 0x00, 0x00, 0x00, 0x00, 0x00, //MOV dword ptr[DAT_006c7c50], 0x00
+	const uint8_t replace[] = { 0xc7, 0x05, 0x50, 0x7c, 0x6c, 0x00, 0x00, 0x00, 0x00, 0x00, //MOV dword ptr[DAT_006c7c50], 0x00
 				0x5b, //POP EBX
 				0x8b, 0xe5, //MOV ESP, EBP
 				0x5d, //POP EBP
 				0xc3, //RET
 				};
 	
-	int32_t target_size = 24;
-	int32_t replace_size = 15;
+	const int32_t target_size = 24;
+	const int32_t replace_size = 15;
 	
-	char compatible_md5sum[] = "7c820c372f3ca0b7e97e09cc91a0f033";
+	const char compatible_md5sum[] = "7c820c372f3ca0b7e97e09cc91a0f033";
 
 	FILE *files[MAX_FILES_NAMES];
 	char *strings[MAX_STRINGS_NAME];
 	uint32_t files_count = 0;
 	uint32_t strings_count = 0;
 
-	files[INPUT] = fopen(argv[1], "rb+");
-	if(files[INPUT] == NULL) {
-		printf("Failed to open file %s\n", argv[1]);
-		perror("Error");
-		return 1;
+	if(argc >= 2) {
+		files[INPUT] = fopen(argv[1], "rb+");
 	}
+	else {
+		const char *executable_path[] = {"tr3gold.exe", 
+						"C:\\Program Files\\Eidos\\Tomb Raider 3 - The Lost Artefact\\tr3gold.exe", 
+						"C:\\Program Files (x86)\\Eidos\\Tomb Raider 3 - The Lost Artefact\\tr3gold.exe"};
+		const int executable_path_count = 3;
+
+	
+		for(int i=0; i < executable_path_count; i++) {
+	
+			files[INPUT] = fopen(executable_path[i], "rb+");
+			if( files[INPUT] != NULL) break;
+
+		}
+	}
+
+	if(files[INPUT] == NULL) {
+		if (argc < 2) {
+			printf("Failed to find the file automatically\nUsage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
+		}
+		else {
+			printf("Failed to open file %s\n", argv[1]);
+			perror("Error");
+		}
+		return 1;
+	}	
 	
 	files_count++;
 
@@ -288,7 +305,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	
-	replace_bytes(files[INPUT], target, target_size, replace, replace_size, files[BACKUP]);
+	replace_bytes(files[INPUT], files[BACKUP], target, target_size, replace, replace_size);
 	
 	free_resources(files, files_count, strings, strings_count);
 	
