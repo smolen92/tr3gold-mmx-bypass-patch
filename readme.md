@@ -16,7 +16,7 @@ This patch change that the default value is 0, turning this settings off.
 2. Install OpenSSL for windows
 3. Compile the patch with:
 ```bash
-gcc -o tr3gold-mmx-bypass.exe main.cpp -I"C:\Program Files\OpenSSL-Win64\include" -L"C:\Program Files\OpenSSL-Win64\lib\VC\x64\MT -lcrypto
+gcc -o tr3gold-mmx-bypass.exe main.cpp -I"C:\Program Files\OpenSSL-Win64\include" -L"C:\Program Files\OpenSSL-Win64\lib\VC\x64\MT" -lcrypto
 ```
 4. Run the patch with:
 ```bash
@@ -26,14 +26,14 @@ Example:
 ```bash
 tr3gold-mmx-bypass.exe "C:\Program Files (x86)\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe"
 ```
-If no argument is entered, the patch will try to find the executable in these location:
-the directory patch is executed
-C:\Program Files\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe
+If no argument is entered, the patch will try to find the executable in these location:<br>
+the directory patch is executed<br>
+C:\Program Files\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe<br>
 C:\Program Files (x86)\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe
 
 ### Notes
 - This patch will backup the original executable to a new file with a .bak extension.
-I.E: tr3gold.exe will be backup to tr3gold.exe.bak
+E.g: tr3gold.exe will be backup to tr3gold.exe.bak
 - If you get error that permission is denied, check if the executable doesn't have the read-only attribute set.
 - It is possible to edit config file and turn MMX settings on, if this is changed the game will crash at the main menu again.
 
