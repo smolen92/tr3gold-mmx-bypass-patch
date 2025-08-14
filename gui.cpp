@@ -21,6 +21,8 @@ class Button {
 			button_color.red = 0xFF;
 			button_color.green = 0x00;
 			button_color.blue = 0x00;
+			previous_state = false;
+			test_var = 0;
 		}
 		
 		void render(SDL_Renderer* renderer) {
@@ -29,12 +31,15 @@ class Button {
 		}
 		
 
-		void check_input(float mouse_x, float mouse_y, bool left_mouse_button_down) {
+		void check_input(float mouse_x, float mouse_y, bool left_mouse_button_down, void (*fun)(int a)) {
 			if( (mouse_x < button_rect.x) || (mouse_x > button_rect.x + button_rect.w) ||
 				(mouse_y < button_rect.y) || (mouse_y > button_rect.y + button_rect.h) ) {
 					button_color.red = 0xFF;
 					button_color.green = 0x00;
 					button_color.blue = 0x00;
+
+					previous_state = false;
+
 					return;
 			}
 
@@ -42,19 +47,32 @@ class Button {
 				button_color.red = 0x00;
 				button_color.green = 0x00;
 				button_color.blue = 0xFF;
+				
+				previous_state = true;
 				return;
+			}
+			
+			if(!left_mouse_button_down && previous_state) {
+				previous_state = false;
+				fun(test_var++);
 			}
 
 			button_color.red = 0x00;
 			button_color.green = 0xFF;
 			button_color.blue = 0x00;
-
+			
 		}
 
 	private:
 		SDL_FRect button_rect;
 		color button_color;
+		bool previous_state;
+		int test_var;
 };
+
+void test(int a) {
+	printf("%d\n", a);
+}
 
 int main(int argc, char **argv) {
 
@@ -80,7 +98,11 @@ int main(int argc, char **argv) {
 	bool running = true;
 
 	bool left_mouse_button_down = false;
-	
+
+	void (*fun_pointer)(int);
+
+	fun_pointer = &test;
+
 	while(running) {
 
 		SDL_Event input;
@@ -102,7 +124,7 @@ int main(int argc, char **argv) {
 		float mouse_x, mouse_y;
 		SDL_GetMouseState(&mouse_x, &mouse_y);
 
-		but.check_input(mouse_x, mouse_y, left_mouse_button_down);
+		but.check_input(mouse_x, mouse_y, left_mouse_button_down, fun_pointer);
 		
 		SDL_SetRenderDrawColor(renderer, 0,0,0, 0xFF);
 		SDL_RenderClear(renderer);
