@@ -24,6 +24,7 @@ class Button {
 		 * @param mouse_y - current y coordinate of mouse position
 		 * @param left_mouse_button_down - true if LMB is pressed, false otherwise
 		 * @param fun - pointer to function that is called when the button is pressed
+		 * \todo connect modifier function to button
 		 */
 		void check_input(float mouse_x, float mouse_y, bool left_mouse_button_down, void (*fun)(int a));
 		
@@ -38,7 +39,6 @@ class Button {
 		bool previous_state;
 		bool active;
 		
-		int test_var;
 };
 
 #endif

@@ -1,201 +1,23 @@
 #include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <openssl/evp.h>
 
-/**
- * @brief find the first occurrence of sub array within array
- *
- * @param *arr pointer to the first element of an array that will be searched
- * @param arr_size size of searched array
- * @param *sub_arr pointer to the sub array that we want to find
- * @param sub_arr_size size of the sub array
- *
- * @return position where the sub array start in searched array
- * @return -1 if the sub array wasn't found in searched array
- */
-uint32_t find_sub_array_within_array(const uint8_t *search_arr, const int32_t search_arr_size, const uint8_t *sub_arr, const int32_t sub_arr_size) {
-	
-	for(int32_t i=0; i < search_arr_size - sub_arr_size; i++) {
-		int found = 1;	
-		for(int32_t j=0; j < sub_arr_size; j++) {
-			
-			if(search_arr[i+j] != sub_arr[j]) {
-				found = 0;
-				break;
-			}
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
-		}
-		
-		if(found) return i;
+#include "button.h"
+#include "text.h"
+#include "scene.h"
+#include "modifier.h"
 
-	}
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 200
 
-	return -1;
-
-}
-
-/**
- * @param input pointer to file that will have the bytes replaced
- * @param backup file that will be used for backup of the original file
- * @param target pointer to the array of bytes you want to replace
- * @param target_size size of the target array
- * @param replace_string pointer to the array of bytes that will be written
- * @param replace_string_size size of the replace array
- *
- * @detail backup - use NULL if you don't want to create backup file
- */
-void replace_bytes(FILE* input, FILE* backup, const uint8_t* target, const uint32_t target_size, const uint8_t* replace_string, const uint32_t replace_string_size) {
-
-	if(input == NULL) {
-		printf("No file specified\n");
-		return;
-	}
-
-	uint8_t* file_content;
-	uint32_t file_size;
-
-	//get file size and copy content of the file to buffer
-	fseek(input, 0, SEEK_END);
-	file_size = ftell(input);
-	fseek(input, 0, SEEK_SET);
-	
-	file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
-	
-	if(fread((void*)file_content, sizeof(uint8_t), file_size, input) != file_size) {
-		printf("Error while reading file\n");
-	}
-	fseek(input, 0, SEEK_SET);
-	
-	//create backup of the original file
-	if(backup != NULL) {
-		fwrite(file_content, sizeof(uint8_t), file_size, backup);
-	}
-	else {
-		printf("No backup file will be created. Continue [y/N]: ");
-		char c = getchar();
-		if( (c != 'y') && (c != 'Y') ) return;
-	}
-
-	//find target in file
-	uint32_t pos = find_sub_array_within_array(file_content, file_size, target, target_size);
-	
-	if(pos == -1) {
-		printf("Target not found\n");
-	}
-	else {
-		//check if there are more than one location of target in file
-		uint32_t next_pos = find_sub_array_within_array(file_content+pos+1,file_size - pos,target, target_size);
-
-		if(next_pos != -1) {
-			printf("multiple target location within file found\n");
-		}
-		else {
-			fseek(input, pos, SEEK_SET);
-			fwrite(replace_string, sizeof(uint8_t), replace_string_size, input);
-		}
-
-	}
-
-
-}
-
-/**
- * @param input file to calculate the md5 sum for
- *
- * @return pointer to string containing the md5 sum
- * @return NULL when error occured
- *
- * @details if the function is succesful, string is allocated inside this function, that need to be freed.
- */
-char* get_md5(FILE* input) {
-	EVP_MD_CTX *mdctx;
-	const EVP_MD *md;
-	unsigned char md_value[EVP_MAX_MD_SIZE];
-	unsigned int md_len;
-
-	md = EVP_get_digestbyname("md5");
-	if (md == NULL) {
-		printf("Unknown message digest md5");
-		return NULL;
-	}
-
-	mdctx = EVP_MD_CTX_new();
-	if (mdctx == NULL) {
-		printf("Message digest create failed.\n");
-		return NULL;
-	}
-
-	if (!EVP_DigestInit_ex2(mdctx, md, NULL)) {
-		printf("Message digest initialization failed.\n");
-		EVP_MD_CTX_free(mdctx);
-		return NULL;
-	}
-
-	int32_t file_buffer_size = 1024;
-	char file_buffer[file_buffer_size];
-	int bytes_read;
-
-	do {
-		bytes_read = fread(file_buffer, sizeof(char), file_buffer_size, input);
-		if (!EVP_DigestUpdate(mdctx, file_buffer, bytes_read) ) {
-			printf("Message digest update failed.\n");
-			EVP_MD_CTX_free(mdctx);
-			return NULL;
-    		}
-
-	} while( bytes_read > 0);
-
-	if (!EVP_DigestFinal_ex(mdctx, md_value, &md_len)) {
-		printf("Message digest finalization failed.\n");
-		EVP_MD_CTX_free(mdctx);
-        	return NULL;
-    	}
-
-	EVP_MD_CTX_free(mdctx);
-
-	char *return_char = (char*)malloc((md_len *2)*sizeof(char));
-
-	for (int i = 0; i < md_len; i++) {
-		sprintf(&return_char[i*2], "%02x", md_value[i]);
-	}
-
-	return return_char;
-}
-
-/**
- * @param files array of files to be freed
- * @param files_count count of files to be freed
- * @param strings array of strings to be freed
- * @param strings_count count of strings to be freed
- */
-void free_resources(FILE** files,const uint32_t files_count, char** strings,const uint32_t strings_count) {
-	for(int i=0; i < files_count; i++) {
-		fclose(files[i]);
-		files[i] = NULL;
-	}
-
-	for(int i=0; i < strings_count; i++) {
-		free(strings[i]);
-		strings[i] = NULL;
-	}
-}
-
-enum files_names {
-	INPUT,
-	BACKUP,
-	MAX_FILES_NAMES
-};
-
-enum strings_names {
-	BACKUP_FILE_PATH,
-	INPUT_FILE_MD5SUM,
-	MAX_STRINGS_NAME
-};
+/// \todo connect modifier to button
+/// \todo create scenes
+/// \todo create cli
+/// \todo test the program
+/// \todo sdlerror to stderr?
 
 int main(int argc, char **argv) {
-
 	//target and replace string
 	const uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
 				0x5b, // POP EBX
@@ -228,94 +50,105 @@ int main(int argc, char **argv) {
 	const int32_t replace_size = 15;
 	
 	const char compatible_md5sum[] = "7c820c372f3ca0b7e97e09cc91a0f033";
+	
+	Modifier tr3gold_modifier;
+	
+	/// \todo check for errors
+	tr3gold_modifier.load_files("tr3gold.exe", "tr3gold.bak");
 
-	FILE *files[MAX_FILES_NAMES];
-	char *strings[MAX_STRINGS_NAME];
-	uint32_t files_count = 0;
-	uint32_t strings_count = 0;
-
-	char backup_file_path[100];
-
-	if(argc >= 2) {
-		files[INPUT] = fopen(argv[1], "rb+");
-		strcpy(backup_file_path, argv[1]);
+	//Init
+	if(!SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) ) {
+		printf("Error: %s\n", SDL_GetError());
+		return 1;
 	}
-	else {
-		const char *executable_path[] = {"tr3gold.exe", 
-						"C:\\Program Files\\Eidos\\Tomb Raider 3 - The Lost Artefact\\tr3gold.exe", 
-						"C:\\Program Files (x86)\\Eidos\\Tomb Raider 3 - The Lost Artefact\\tr3gold.exe"};
-		const int executable_path_count = 3;
 
+	if(!TTF_Init()) {
+		SDL_Log("Error: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	SDL_Renderer* renderer;
+	SDL_Window* window;
+
+	window = SDL_CreateWindow("Patch GUI", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN);
+	if( window == NULL) {
+		printf("Error: %s\n", SDL_GetError());
+	}
+
+	renderer = SDL_CreateRenderer(window, NULL);
+	if(renderer == NULL) {
+		printf("Error: %s\n", SDL_GetError());
+	}
 	
-		for(int i=0; i < executable_path_count; i++) {
-	
-			files[INPUT] = fopen(executable_path[i], "rb+");
-			if( files[INPUT] != NULL) {
-				strcpy(backup_file_path, executable_path[i]);
-				break;
+	TTF_Font* font = TTF_OpenFont("./assets/Montserrat-Regular.ttf",FONT_SIZE);
+	if( font == NULL ) {
+		printf("Error: %s\n", SDL_GetError());
+		return 1;
+	}
+
+	SDL_Color white_color = {0xFF,0xFF,0xFF,0xFF};
+	SDL_Color red_color = {0xFF, 0x00, 0x00, 0xFF};
+	SDL_Color green_color = {0x00, 0xFF, 0x00, 0xFF};
+
+	bool running = true;
+
+	bool left_mouse_button_down = false;
+
+	//void (*fun_pointer)(int);
+
+	//fun_pointer = &test;
+
+	Scene testScene;
+
+	testScene.add_button(new Button(600,100, 100,50,true));
+	testScene.add_text("Test", white_color);
+
+	//main loop
+	while(running) {
+		
+		//input
+		SDL_Event input;
+
+		while(SDL_PollEvent(&input)) {
+			if(input.type == SDL_EVENT_QUIT) {
+				running = false;
+			}
+
+			if(input.button.type == SDL_EVENT_MOUSE_BUTTON_DOWN && input.button.button == 1) {
+				left_mouse_button_down = true;
+			}
+
+			if(input.button.type == SDL_EVENT_MOUSE_BUTTON_UP && input.button.button == 1) {
+				left_mouse_button_down = false;
 			}
 		}
-	}
-
-	if(files[INPUT] == NULL) {
-		if (argc < 2) {
-			perror("Error");
-			printf("Failed to find the file automatically\nUsage: tr3gold-mmx-bypass.exe <path-to-the-executable>\n");
-		}
-		else {
-			printf("Failed to open file %s\n", argv[1]);
-			perror("Error");
-		}
-		return 1;
-	}	
+		
+		float mouse_x, mouse_y;
+		SDL_GetMouseState(&mouse_x, &mouse_y);
+		
+		//logic
+		testScene.check_input(mouse_x, mouse_y, left_mouse_button_down);
+		
+		//rendering
+		SDL_SetRenderDrawColor(renderer, 0,0,0, 0xFF);
+		SDL_RenderClear(renderer);
 	
-	files_count++;
+		testScene.render(renderer, font);
 
-	strings[BACKUP_FILE_PATH] = (char*)malloc((strlen(backup_file_path)+strlen(".bak"))*sizeof(char));
-	if( strings[BACKUP_FILE_PATH] == NULL) {
-		printf("Allocation for backup file path failed\n");
-		free_resources(files, files_count, strings, strings_count);
-		return 1;
+		SDL_RenderPresent(renderer);
 	}
 	
-	strings_count++;
 
-	strcpy(strings[BACKUP_FILE_PATH], backup_file_path);
-	strcpy(&strings[BACKUP_FILE_PATH][strlen(backup_file_path)], ".bak"); 
+	//clean
+	SDL_DestroyRenderer(renderer);
+	renderer = NULL;
 
-	files[BACKUP] = fopen(strings[BACKUP_FILE_PATH], "ab");
-	if( files[BACKUP] == NULL ) {
-		printf("Failed to open file %s\n", strings[BACKUP_FILE_PATH]);
-		perror("Error");
-		free_resources(files, files_count, strings, strings_count);
-		return 1;
-	}
+	SDL_DestroyWindow(window);
+	window = NULL;
 
-	files_count++;
+	TTF_Quit();
+	SDL_Quit();
 
-	strings[INPUT_FILE_MD5SUM] = get_md5(files[INPUT]);
-	if( strings[INPUT_FILE_MD5SUM] == NULL ) {
-		printf("Failed to calculate md5sum for input file\n");
-		free_resources(files, files_count, strings, strings_count);
-		return 1;
-	}
-	
-	strings_count++;
-
-	if( strcmp(compatible_md5sum, strings[INPUT_FILE_MD5SUM]) != 0) {
-		printf("Input file is not compatible/wasn't tested. Continue? [y/N]: ");
-		char c = getchar();
-		if( (c != 'y') && (c != 'Y') ) {
-			free_resources(files, files_count, strings, strings_count);
-			return 1;
-		}
-	}
-	
-	replace_bytes(files[INPUT], files[BACKUP], target, target_size, replace, replace_size);
-	
-	free_resources(files, files_count, strings, strings_count);
-	
-	return 1;
-
+	return 0;
 }
 

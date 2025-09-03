@@ -26,24 +26,27 @@ Example:
 ```bash
 tr3gold-mmx-bypass.exe "C:\Program Files (x86)\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe"
 ```
-If no argument is entered, the patch will try to find the executable in these location:<br>
-the directory patch is executed<br>
-C:\Program Files\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe<br>
-C:\Program Files (x86)\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe
 
 ### Notes
 - This patch will backup the original executable to a new file with a .bak extension.
-E.g: tr3gold.exe will be backup to tr3gold.exe.bak
+E.g: tr3gold.exe will be backup to tr3gold.bak
 - If you get error that permission is denied, check if the executable doesn't have the read-only attribute set.
 - It is possible to edit config file and turn MMX settings on, if this is changed the game will crash at the main menu again.
 
-
 ## Compatability
+
+### Game Release Version
 - This patch is compatible with version from the Tomb Raider Ultimate Edition that was released for Czech/Slovak/Polish market.
 Other version has not been tested and therefore compatabily with other versions are yet unknown.
-- This patch have been tested only in a VM on windows 10, where it was able to start and get into the game.
-- When runnig the game on linux with proton the game still crash at the main menu
+
+### Windows
+- This patch have been tested on windows 10 on real machine and in VM, in both cases t was able to start and get into the game.
+
+### Linux through Proton
+- When runnig the game on linux with proton the game, the game need to be installed outside Program Files or Program Files (x86) folders.
+If the game in installed in these folders the game cannot find the file TITLE.TR2, this could be only issue with the Ultimate Edition release.
+The file is in cd directory and in this version is patched so the game doesn't require cd in drive. On original release the file is probaly on CD.
 
 ## Todo
 - check if the game can be beat with this patch
-- try to find why it still crash on linux when running it with proton
+- check the patch on other releases of the game
