@@ -1,10 +1,10 @@
 #ifndef _MODIFIER_H_
 #define _MODIFIER_H_
 
-#include <stdio.h>
 #include <stdint.h>
 #include <openssl/evp.h>
 #include <stdlib.h>
+#include <string.h>
 
 enum Modifier_Errors {
 	ERROR_INPUT_FILE_NOT_FOUND = 0x01,
@@ -18,7 +18,8 @@ enum Modifier_Errors {
 	ERROR_MESSAGE_DIGEST_UPDATE_FAILED = 0x100,
 	ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED = 0x200,
 	ERROR_WRITING_BACKUP_FILE = 0x400,
-	ERROR_MODIFYING_FILE = 0x800
+	ERROR_MODIFYING_FILE = 0x800,
+	ERROR_MD5_SUM_DOESNT_MATCH = 0x1000
 };
 
 /**
@@ -32,10 +33,14 @@ class Modifier {
 		/**
 		 * @brief open file to modify and file to backup the original file
 		 *
+		 * @param input_file_name name of input file
+		 * @param backup_file_name name of the backup file
+		 * @param md5_checksum md5 checksum that is check against
+		 *
 		 * @return 0 on success
 		 * @return bitwise or of error from modifiers error
 		 */
-		int load_files(const char* input_file_name, const char* backup_file_name);
+		int load_files(const char* input_file_name, const char* backup_file_name, const char* md5_checksum);
 
 		/**
 		 * @brief find the first occurrence of sub array within array

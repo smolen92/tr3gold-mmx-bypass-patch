@@ -15,12 +15,9 @@ class Text {
 	public:
 		/**
 		 * @param text - text that will be rendered
-		 * @param y-pointer y position of the text
+		 * @param y_position y position of the text
 		 * @param color - color of the text
 		 * @param font - pointer to font that will be used
-		 *
-		 * @return 0 - on success
-		 * @return 1 - on failure
 		 */
 		Text(const char* text, float y_position, SDL_Color color, TTF_Font* font);
 		

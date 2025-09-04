@@ -7,11 +7,13 @@
 /// \endcond
 
 /// \file
-/// \todo create scenes
+/// \todo get rid of magic numbers when creating scene
+/// \todo check the return value of replace function and print text in main scene accordingly
 /// \todo create cli
 /// \todo test the program
 /// \todo sdlerror to stderr?
 
+/// \cond
 int main(int argc, char **argv) {
 	//target and replace string
 	const uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
@@ -79,6 +81,7 @@ int main(int argc, char **argv) {
 	SDL_Color white_color = {0xFF,0xFF,0xFF,0xFF};
 	SDL_Color red_color = {0xFF, 0x00, 0x00, 0xFF};
 	SDL_Color green_color = {0x00, 0xFF, 0x00, 0xFF};
+	SDL_Color yellow_color = {0xFF,0xFF,0x00,0xFF};
 
 	bool running = true;
 
@@ -86,28 +89,72 @@ int main(int argc, char **argv) {
 	
 	Modifier tr3gold_modifier;
 	
-	Scene testScene;
+	Scene main_scene, promt_scene;
+	Scene* current_scene = &main_scene;
+
+	main_scene.add_text(new Text("Tr3gold MMX bypass patch", 0, white_color, font));
 	
-	testScene.add_text(new Text("Tr3gold MMX bypass patch", 0, white_color, font));
-	
-	int files_status = tr3gold_modifier.load_files("tr3gold.exe", "tr3gold.bak");
+	int files_status = tr3gold_modifier.load_files("tr3gold.exe", "tr3gold.bak", compatible_md5sum);
+
+	bool patch_button_state = true;
+
+	bool patch_button_pressed = false;
+	bool promt_yes_button_pressed = false;
+	bool promt_no_button_pressed = false;
+
 	if(files_status != 0) {
-		if( files_status & ERROR_INPUT_FILE_NOT_FOUND) testScene.add_text(new Text("Error: Input file not found", FONT_SIZE, red_color, font));
-		if( files_status & ERROR_CANNOT_OPEN_BACKUP_FILE) testScene.add_text(new Text("Error: Cannot open backup file", 2*FONT_SIZE, red_color, font));
-		if( files_status & ERROR_UNKNOWN_MESSAGE_DIGEST_MD5) testScene.add_text(new Text("Error: Unknown message digest md5", 3*FONT_SIZE, red_color, font));
-		if( files_status & ERROR_MESSAGE_DIGEST_CREATE_FAILED) testScene.add_text(new Text("Error: Digest create failed", 3*FONT_SIZE, red_color, font));
-		if( files_status & ERROR_MESSAGE_DIGEST_INITIALIZATION_FAILED) testScene.add_text(new Text("Error: Digest initialization failed", 3*FONT_SIZE, red_color, font));
-		if( files_status & ERROR_MESSAGE_DIGEST_UPDATE_FAILED) testScene.add_text(new Text("Error: Message digest update failed", 3*FONT_SIZE, red_color, font));
-		if( files_status & ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED) testScene.add_text(new Text("Error: Message digest finalization failed", 3*FONT_SIZE, red_color, font));
-		testScene.add_button(new Button(600,100, 100,50,false));
+		if( files_status & ERROR_INPUT_FILE_NOT_FOUND) {
+			main_scene.add_text(new Text("Error: Input file not found", FONT_SIZE, red_color, font));
+			patch_button_state = false;
+		}
+
+		if( files_status & ERROR_CANNOT_OPEN_BACKUP_FILE) {
+			promt_scene.add_text(new Text("Error: Cannot open backup file", 0, red_color, font));
+		}
+
+		if( files_status & ERROR_UNKNOWN_MESSAGE_DIGEST_MD5) {
+			promt_scene.add_text(new Text("Error: Unknown message digest md5", 2*FONT_SIZE, red_color, font));
+		}
+
+		if( files_status & ERROR_MESSAGE_DIGEST_CREATE_FAILED) {
+			promt_scene.add_text(new Text("Error: Digest create failed", 2*FONT_SIZE, red_color, font));
+		}
+
+		if( files_status & ERROR_MESSAGE_DIGEST_INITIALIZATION_FAILED) {
+			main_scene.add_text(new Text("Error: Digest initialization failed", 2*FONT_SIZE, red_color, font));
+		}
+
+		if( files_status & ERROR_MESSAGE_DIGEST_UPDATE_FAILED) {
+			promt_scene.add_text(new Text("Error: Message digest update failed", 2*FONT_SIZE, red_color, font));
+		}
+
+		if( files_status & ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED) {
+			promt_scene.add_text(new Text("Error: Message digest finalization failed", 2*FONT_SIZE, red_color, font));
+		}
+	
+		if( files_status & ERROR_MD5_SUM_DOESNT_MATCH) {
+			promt_scene.add_text(new Text("Error: Md5 checksum doesn't match", 3*FONT_SIZE, red_color, font));
+		}
+
+		main_scene.add_text(new Text("Warning: Some test didn't pass", 2*FONT_SIZE, yellow_color, font));
+		main_scene.add_button(new Button(600,100, 100,50, patch_button_state, &patch_button_pressed));
+		promt_scene.add_button(new Button(450, 100, 100, 50, true, &promt_no_button_pressed));
+		promt_scene.add_button(new Button(600, 100, 100, 50, true, &promt_yes_button_pressed));
+		promt_scene.add_text(new Text("Try to patch the file anyway?", 4*FONT_SIZE, white_color, font));
 	}
 	else {
-		testScene.add_button(new Button(600,100,100,50,true));
+		main_scene.add_button(new Button(600,100,100,50,true,&patch_button_pressed));
+		main_scene.add_text(new Text("Every test passed", FONT_SIZE, green_color, font));
 	}
+
 
 	//main loop
 	while(running) {
-		
+	
+		patch_button_pressed = false;
+		promt_no_button_pressed = false;
+		promt_yes_button_pressed = false;
+
 		//input
 		SDL_Event input;
 
@@ -129,13 +176,30 @@ int main(int argc, char **argv) {
 		SDL_GetMouseState(&mouse_x, &mouse_y);
 		
 		//logic
-		testScene.check_input(mouse_x, mouse_y, left_mouse_button_down);
+		current_scene->check_input(mouse_x, mouse_y, left_mouse_button_down);
 		
+		if(patch_button_pressed) {
+			if(files_status == 0) {
+				tr3gold_modifier.replace_bytes(target, target_size, replace, replace_size);
+			}
+			else {
+				current_scene = &promt_scene;
+			}
+		}
+
+		if(promt_no_button_pressed) {
+			current_scene = &main_scene;
+		}
+
+		if(promt_yes_button_pressed) {
+			tr3gold_modifier.replace_bytes(target, target_size, replace, replace_size);
+		}
+
 		//rendering
 		SDL_SetRenderDrawColor(renderer, 0,0,0, 0xFF);
 		SDL_RenderClear(renderer);
 	
-		testScene.render(renderer);
+		current_scene->render(renderer);
 
 		SDL_RenderPresent(renderer);
 	}
@@ -152,4 +216,5 @@ int main(int argc, char **argv) {
 
 	return 0;
 }
+/// \endcond
 

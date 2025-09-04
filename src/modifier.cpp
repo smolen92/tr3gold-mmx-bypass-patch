@@ -6,7 +6,7 @@ Modifier::Modifier() {
 	md5_checksum = NULL;
 }
 
-int Modifier::load_files(const char* input_file_name, const char* backup_file_name) {
+int Modifier::load_files(const char* input_file_name, const char* backup_file_name, const char* md5_checksum) {
 
 	int return_value = 0;
 
@@ -21,6 +21,10 @@ int Modifier::load_files(const char* input_file_name, const char* backup_file_na
 		fseek(input_file, 0, SEEK_SET);
 	
 		return_value |= this->get_md5();
+
+		if( (return_value == 0) && (strcmp(md5_checksum, this->md5_checksum) != 0) ) {
+			return_value |= ERROR_MD5_SUM_DOESNT_MATCH;
+		}
 	}
 
 	backup_file = fopen(backup_file_name, "ab");

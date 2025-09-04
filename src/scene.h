@@ -19,10 +19,6 @@ class Scene {
 		/**
 		 * @brief will add text into the scene
 		 *
-		 * @param t text itself
-		 * @param y y position of the text
-		 * @param c color of the text
-		 * @param f font to use
 		 */
 		void add_text(Text *t);
 		

@@ -10,7 +10,7 @@ void Scene::add_text(Text* t) {
 
 void Scene::check_input(float mousex, float mousey, bool LMB_state) {
 	for(unsigned int i=0; i < buttons.size(); i++) {
-		buttons[i]->check_input(mousex, mousey, LMB_state, NULL);
+		buttons[i]->check_input(mousex, mousey, LMB_state);
 	}
 
 }

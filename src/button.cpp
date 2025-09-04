@@ -1,6 +1,6 @@
 #include "button.h"
 
-Button::Button(int x, int y, int w, int h, bool active) {
+Button::Button(int x, int y, int w, int h, bool active, bool* action) {
 	button_rect.x = x;
 	button_rect.y = y;
 	button_rect.w = w;
@@ -13,10 +13,11 @@ Button::Button(int x, int y, int w, int h, bool active) {
 	previous_state = false;
 			
 	this->active = active;
-
+	
+	this->action = action;
 }
 		
-void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_down, bool *action) {
+void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_down) {
 	if(!active) {
 		button_color.r = 0x2F;
 		button_color.g = 0x2F;
@@ -57,8 +58,9 @@ void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_do
 			
 }	
 
+/// \cond
 void Button::render(SDL_Renderer* renderer) {
 	SDL_SetRenderDrawColor(renderer, button_color.r, button_color.g, button_color.b, 0xFF);
 	SDL_RenderFillRect(renderer, &button_rect);
 }
-
+/// \endcond
