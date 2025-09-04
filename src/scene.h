@@ -3,11 +3,12 @@
 
 #include <vector>
 
-#include <SDL3/SDL.h>
-
 #include "button.h"
 #include "text.h"
 
+/**
+ * @brief class that contain button and text for 1 screen
+ */
 class Scene {
 	public:
 		/**
@@ -19,20 +20,20 @@ class Scene {
 		 * @brief will add text into the scene
 		 *
 		 * @param t text itself
+		 * @param y y position of the text
 		 * @param c color of the text
+		 * @param f font to use
 		 */
-		void add_text(const char* t, SDL_Color c);
+		void add_text(Text *t);
 		
 		/**
 		 * @brief same as button check_input
 		 */
 		void check_input(float mousex, float mousey, bool LMB_state);
 		
-		/**
-		 * @param renderer renderer that will be used for rendering
-		 * @param font font for the text
-		 */
-		void render(SDL_Renderer* renderer, TTF_Font* font);
+		/// \cond
+		void render(SDL_Renderer* renderer);
+		/// \endcond
 		
 		~Scene();
 	private:

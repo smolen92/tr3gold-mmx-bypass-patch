@@ -1,21 +1,31 @@
 #include "modifier.h"
 
+Modifier::Modifier() {
+	input_file = NULL;
+	backup_file = NULL;
+	md5_checksum = NULL;
+}
 
 int Modifier::load_files(const char* input_file_name, const char* backup_file_name) {
 
 	int return_value = 0;
 
-	input_file = fopen(input_file_name, "rb+");;
+	input_file = fopen(input_file_name, "rb+");
 	if( input_file == NULL) {
-		return_value |= INPUT_FILE_NOT_FOUND;
+		return_value |= ERROR_INPUT_FILE_NOT_FOUND;
 	}
 	else { 
-		return_value |= this-> get_md5();
+		//get file size and copy content of the file to buffer
+		fseek(input_file, 0, SEEK_END);
+		file_size = ftell(input_file);
+		fseek(input_file, 0, SEEK_SET);
+	
+		return_value |= this->get_md5();
 	}
 
 	backup_file = fopen(backup_file_name, "ab");
 	if( backup_file == NULL) {
-		return_value |= BACKUP_FILE_NOT_FOUND;
+		return_value |= ERROR_CANNOT_OPEN_BACKUP_FILE;
 	}
 
 	return return_value;
@@ -45,13 +55,8 @@ int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, c
 	int return_value = 0;
 
 	uint8_t* file_content;
-	uint32_t file_size;
 
-	//get file size and copy content of the file to buffer
-	fseek(input_file, 0, SEEK_END);
-	file_size = ftell(input_file);
-	fseek(input_file, 0, SEEK_SET);
-	
+
 	file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
 	
 	if(fread((void*)file_content, sizeof(uint8_t), file_size, input_file) != file_size) {
@@ -60,8 +65,10 @@ int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, c
 	fseek(input_file, 0, SEEK_SET);
 	
 	//create backup file of the original file
-	/// \todo check for errors while writing
-	fwrite(file_content, sizeof(uint8_t), file_size, backup_file);
+	/// \todo move to function or prompt for input when this fail
+	if( fwrite(file_content, sizeof(uint8_t), file_size, backup_file) < file_size ) {
+		return_value |= ERROR_WRITING_BACKUP_FILE;
+	}
 
 	//find target in file
 	int32_t pos = find_sub_array_within_array(file_content, file_size, target, target_size);
@@ -78,8 +85,9 @@ int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, c
 		}
 		else {
 			fseek(input_file, pos, SEEK_SET);
-			/// \todo check for error while writing
-			fwrite(replace_string, sizeof(uint8_t), replace_string_size, input_file);
+			if( fwrite(replace_string, sizeof(uint8_t), replace_string_size, input_file) < replace_string_size) {
+				return_value |= ERROR_MODIFYING_FILE;
+			}
 		}
 
 	}
@@ -128,7 +136,7 @@ int Modifier::get_md5() {
 	} while( bytes_read > 0);
 
 	if (!EVP_DigestFinal_ex(mdctx, md_value, &md_len)) {
-		return_value |= ERROR_MESSAGE_MESSAGE_DIGEST_FINALIZATION_FAILED;
+		return_value |= ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED;
 		EVP_MD_CTX_free(mdctx);
         	return return_value;
     	}
@@ -145,9 +153,9 @@ int Modifier::get_md5() {
 }
 
 Modifier::~Modifier() {
-	fclose(input_file);
-	fclose(backup_file);
+	if(input_file != NULL) fclose(input_file);
+	if(backup_file != NULL) fclose(backup_file);
 
-	free(md5_checksum);
+	if(md5_checksum != NULL) free(md5_checksum);
 }
 

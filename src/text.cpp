@@ -1,29 +1,28 @@
 #include "text.h"
 
-int Text::set_text(const char* t, SDL_Color c) {
-	this->text = (char*)malloc(strlen(t)*sizeof(char));	
-	if(this->text == NULL) {
-		return 1;
-	}
-	
+Text::Text(const char* t, float y_position, SDL_Color c, TTF_Font* font) {
 	strcpy(this->text, t);
 
 	this->color = c;
+	
+	this->font = font;
 
-	return 0;
+	this->y_position = y_position;
+
 }
 
 void Text::set_Color(SDL_Color c) {
 	this->color = c;
 }
 
-void Text::render(SDL_Renderer* renderer, TTF_Font* font ) {
-	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, this->text, 4, this->color);
+/// \cond
+void Text::render(SDL_Renderer* renderer) {
+	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, this->text, strlen(this->text), this->color);
 		if(temp_text_surface == NULL) return;
 
 		SDL_Texture *temp_text_texture = SDL_CreateTextureFromSurface(renderer, temp_text_surface);
 		if(temp_text_texture != NULL) {	
-			SDL_FRect dst = {0,0,0,0};
+			SDL_FRect dst = {0,this->y_position,0,0};
 
 			SDL_GetTextureSize(temp_text_texture, &dst.w, &dst.h);
 
@@ -36,11 +35,9 @@ void Text::render(SDL_Renderer* renderer, TTF_Font* font ) {
 		SDL_DestroySurface(temp_text_surface);
 		temp_text_surface = NULL;
 }
+/// \endcond
 
-void Text::free_text() {
-	if(this->text != NULL) {
-		free(this->text);
-		this->text = NULL;
-	}
+Text::~Text() {
+	font = NULL;
 }
 

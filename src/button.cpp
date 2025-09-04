@@ -16,7 +16,7 @@ Button::Button(int x, int y, int w, int h, bool active) {
 
 }
 		
-void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_down, void (*fun)(int a)) {
+void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_down, bool *action) {
 	if(!active) {
 		button_color.r = 0x2F;
 		button_color.g = 0x2F;
@@ -48,7 +48,7 @@ void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_do
 			
 	if(!left_mouse_button_down && previous_state) {
 		previous_state = false;
-		//fun(test_var++);
+		*action = true;
 	}
 
 	button_color.r = 0x00;

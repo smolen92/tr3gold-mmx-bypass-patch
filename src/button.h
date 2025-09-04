@@ -5,6 +5,9 @@
 
 #define FONT_SIZE 28
 
+/**
+ * @brief button class
+ */
 class Button {
 	public:
 	
@@ -23,16 +26,13 @@ class Button {
 		 * @param mouse_x - current x coordinate of mouse posistion
 		 * @param mouse_y - current y coordinate of mouse position
 		 * @param left_mouse_button_down - true if LMB is pressed, false otherwise
-		 * @param fun - pointer to function that is called when the button is pressed
-		 * \todo connect modifier function to button
+		 * @param action - pointer to bool that is set to true if button was pressed
 		 */
-		void check_input(float mouse_x, float mouse_y, bool left_mouse_button_down, void (*fun)(int a));
+		void check_input(float mouse_x, float mouse_y, bool left_mouse_button_down, bool *action);
 		
-		/**
-		 * @param renderer - renderer that is used for drawing the button
-		 */
+		/// \cond
 		void render(SDL_Renderer* renderer);
-
+		/// \endcond
 	private:
 		SDL_FRect button_rect;
 		SDL_Color button_color;

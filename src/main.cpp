@@ -1,17 +1,12 @@
-#include <stdio.h>
-
-#include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
-
-#include "button.h"
-#include "text.h"
 #include "scene.h"
 #include "modifier.h"
 
+/// \cond
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 200
+/// \endcond
 
-/// \todo connect modifier to button
+/// \file
 /// \todo create scenes
 /// \todo create cli
 /// \todo test the program
@@ -51,11 +46,6 @@ int main(int argc, char **argv) {
 	
 	const char compatible_md5sum[] = "7c820c372f3ca0b7e97e09cc91a0f033";
 	
-	Modifier tr3gold_modifier;
-	
-	/// \todo check for errors
-	tr3gold_modifier.load_files("tr3gold.exe", "tr3gold.bak");
-
 	//Init
 	if(!SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) ) {
 		printf("Error: %s\n", SDL_GetError());
@@ -93,15 +83,27 @@ int main(int argc, char **argv) {
 	bool running = true;
 
 	bool left_mouse_button_down = false;
-
-	//void (*fun_pointer)(int);
-
-	//fun_pointer = &test;
-
+	
+	Modifier tr3gold_modifier;
+	
 	Scene testScene;
-
-	testScene.add_button(new Button(600,100, 100,50,true));
-	testScene.add_text("Test", white_color);
+	
+	testScene.add_text(new Text("Tr3gold MMX bypass patch", 0, white_color, font));
+	
+	int files_status = tr3gold_modifier.load_files("tr3gold.exe", "tr3gold.bak");
+	if(files_status != 0) {
+		if( files_status & ERROR_INPUT_FILE_NOT_FOUND) testScene.add_text(new Text("Error: Input file not found", FONT_SIZE, red_color, font));
+		if( files_status & ERROR_CANNOT_OPEN_BACKUP_FILE) testScene.add_text(new Text("Error: Cannot open backup file", 2*FONT_SIZE, red_color, font));
+		if( files_status & ERROR_UNKNOWN_MESSAGE_DIGEST_MD5) testScene.add_text(new Text("Error: Unknown message digest md5", 3*FONT_SIZE, red_color, font));
+		if( files_status & ERROR_MESSAGE_DIGEST_CREATE_FAILED) testScene.add_text(new Text("Error: Digest create failed", 3*FONT_SIZE, red_color, font));
+		if( files_status & ERROR_MESSAGE_DIGEST_INITIALIZATION_FAILED) testScene.add_text(new Text("Error: Digest initialization failed", 3*FONT_SIZE, red_color, font));
+		if( files_status & ERROR_MESSAGE_DIGEST_UPDATE_FAILED) testScene.add_text(new Text("Error: Message digest update failed", 3*FONT_SIZE, red_color, font));
+		if( files_status & ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED) testScene.add_text(new Text("Error: Message digest finalization failed", 3*FONT_SIZE, red_color, font));
+		testScene.add_button(new Button(600,100, 100,50,false));
+	}
+	else {
+		testScene.add_button(new Button(600,100,100,50,true));
+	}
 
 	//main loop
 	while(running) {
@@ -133,11 +135,10 @@ int main(int argc, char **argv) {
 		SDL_SetRenderDrawColor(renderer, 0,0,0, 0xFF);
 		SDL_RenderClear(renderer);
 	
-		testScene.render(renderer, font);
+		testScene.render(renderer);
 
 		SDL_RenderPresent(renderer);
 	}
-	
 
 	//clean
 	SDL_DestroyRenderer(renderer);
