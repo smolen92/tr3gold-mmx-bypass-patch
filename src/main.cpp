@@ -3,14 +3,25 @@
 
 /// \file
 /// \todo get rid of magic numbers when creating scene
-/// \todo test the program
-/// \todo change gui/cli based on arguments, load file specified in arguments
 /// \todo button gfx
 
 /// \cond
 int main(int argc, char **argv) {
 	//argumets
-	bool cli = true;
+	bool cli = false;
+	char exe_file_name[] = "tr3gold.exe";
+
+	if(argc > 1) {
+		for(int i=1; i < argc; i++) {
+			if(strcmp("--cli", argv[i]) == 0) {
+				cli = true;
+			}
+
+			if(strncmp("-i=", argv[i], 3) == 0) {
+				if(strlen(argv[i]) > strlen("-i=")) strcpy(exe_file_name, &argv[i][3]);
+			}
+		}
+	}
 
 	//target and replace string
 	const uint8_t target[] = { 0x89, 0x15, 0x50, 0x7c, 0x6c, 0x00, //mov dword ptr [DAT_006c7c50], EDX
@@ -48,7 +59,7 @@ int main(int argc, char **argv) {
 	//Modifier setup
 	Modifier tr3gold_modifier;
 	
-	int files_status = tr3gold_modifier.load_files("tr3gold.exe", "tr3gold.bak", compatible_md5sum);
+	int files_status = tr3gold_modifier.load_files(exe_file_name, "tr3gold.bak", compatible_md5sum);
 
 	//gui/cli selection	
 	TTF_Font* font;
@@ -160,6 +171,7 @@ int main(int argc, char **argv) {
 				main_scene.clear();
 				main_scene.add_text(new Text("Error while patching the file", 0, red_color, font));
 			
+				if( modifier_return_value & ERROR_INPUT_BUFFER_ALLOCATION) main_scene.add_text(new Text("Error: failed to allocate bugger for input file", FONT_SIZE, red_color, font));
 				if( modifier_return_value & ERROR_READING_INPUT_FILE) main_scene.add_text(new Text("Error: while reading input file", FONT_SIZE, red_color, font));
 				if( modifier_return_value & ERROR_MULTIPLE_TARGET_LOCATION) main_scene.add_text(new Text("Error: Multiple target location found", FONT_SIZE, red_color, font));
 				if( modifier_return_value & ERROR_WRITING_BACKUP_FILE) main_scene.add_text(new Text("Error: while creating backup file", FONT_SIZE, red_color, font));

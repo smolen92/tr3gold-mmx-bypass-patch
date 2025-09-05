@@ -19,7 +19,7 @@ int Modifier::load_files(const char* input_file_name, const char* backup_file_na
 		fseek(input_file, 0, SEEK_END);
 		file_size = ftell(input_file);
 		fseek(input_file, 0, SEEK_SET);
-	
+		
 		return_value |= this->get_md5();
 
 		if( (return_value == 0) && (strcmp(md5_checksum, this->md5_checksum) != 0) ) {
@@ -27,7 +27,7 @@ int Modifier::load_files(const char* input_file_name, const char* backup_file_na
 		}
 	}
 
-	backup_file = fopen(backup_file_name, "ab");
+	backup_file = fopen(backup_file_name, "wb+");
 	if( backup_file == NULL) {
 		return_value |= ERROR_CANNOT_OPEN_BACKUP_FILE;
 	}
@@ -59,13 +59,20 @@ int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, c
 	uint8_t* file_content;
 
 	file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
-	
-	if(fread((void*)file_content, sizeof(uint8_t), file_size, input_file) != file_size) {
+	if(file_content == NULL) {
+		return ERROR_INPUT_BUFFER_ALLOCATION;
+	}
+
+	unsigned int bytes_read = fread((void*)file_content, sizeof(uint8_t), file_size, input_file);
+
+	if( bytes_read != file_size ) {
+		printf("%d\n", bytes_read);
 		return ERROR_READING_INPUT_FILE;
 	}
 	fseek(input_file, 0, SEEK_SET);
 	
 	//create backup file of the original file
+	/// \bug if this isn't reached the backup file is empty
 	if( fwrite(file_content, sizeof(uint8_t), file_size, backup_file) < file_size ) {
 		return ERROR_WRITING_BACKUP_FILE;
 	}
@@ -135,6 +142,8 @@ int Modifier::get_md5() {
 
 	} while( bytes_read > 0);
 
+	fseek(input_file, 0, SEEK_SET);
+	
 	if (!EVP_DigestFinal_ex(mdctx, md_value, &md_len)) {
 		return_value |= ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED;
 		EVP_MD_CTX_free(mdctx);

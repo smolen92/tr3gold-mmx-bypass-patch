@@ -12,22 +12,43 @@
 #define WINDOW_HEIGHT 200
 /// \endcond
 
-
+/**
+ * @brief class for handling gui using sdl
+ */
 class Gui {
 	public:
+		/**
+		 * @param font poitner to font, that will be used for text
+		 */
 		int gui_init(TTF_Font** font);
 
+		/**
+		 * @brief checks the input
+		 *
+		 * @param running boolean that will tell if the main loop should run
+		 */
 		void input(bool *running);
 		
+		/**
+		 * @brief do the logic only for gui
+		 */
 		void logic();
 
+		/**
+		 * @brief render the scene to window
+		 */
 		void render();
 		
+		/**
+		 * @brief print the scene to terminal/cli
+		 */
 		void print();
 
 		~Gui();
-
+		
+		/// \cond
 		Scene* current_scene;
+		/// \endcond
 	private:
 		SDL_Renderer* renderer;
 		SDL_Window* window;
