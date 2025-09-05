@@ -28,7 +28,7 @@ void Scene::render(SDL_Renderer* renderer) {
 /// \endcond
 
 
-Scene::~Scene() {
+void Scene::clear() {
 	while(!buttons.empty()) {
 		delete buttons.back();
 		buttons.pop_back();

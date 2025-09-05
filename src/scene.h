@@ -26,12 +26,15 @@ class Scene {
 		 * @brief same as button check_input
 		 */
 		void check_input(float mousex, float mousey, bool LMB_state);
-		
+
 		/// \cond
 		void render(SDL_Renderer* renderer);
 		/// \endcond
 		
-		~Scene();
+		/**
+		 * @brief clear the scene from all buttons and text
+		 */
+		void clear();
 	private:
 		std::vector<Button*> buttons;
 		std::vector<Text*> texts;

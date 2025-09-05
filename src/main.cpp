@@ -8,10 +8,8 @@
 
 /// \file
 /// \todo get rid of magic numbers when creating scene
-/// \todo check the return value of replace function and print text in main scene accordingly
 /// \todo create cli
 /// \todo test the program
-/// \todo sdlerror to stderr?
 
 /// \cond
 int main(int argc, char **argv) {
@@ -50,12 +48,12 @@ int main(int argc, char **argv) {
 	
 	//Init
 	if(!SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) ) {
-		printf("Error: %s\n", SDL_GetError());
+		fprintf(stderr, "Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
 	if(!TTF_Init()) {
-		SDL_Log("Error: %s\n", SDL_GetError());
+		fprintf(stderr, "Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
@@ -64,17 +62,17 @@ int main(int argc, char **argv) {
 
 	window = SDL_CreateWindow("Patch GUI", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN);
 	if( window == NULL) {
-		printf("Error: %s\n", SDL_GetError());
+		fprintf(stderr, "Error: %s\n", SDL_GetError());
 	}
 
 	renderer = SDL_CreateRenderer(window, NULL);
 	if(renderer == NULL) {
-		printf("Error: %s\n", SDL_GetError());
+		fprintf(stderr, "Error: %s\n", SDL_GetError());
 	}
 	
 	TTF_Font* font = TTF_OpenFont("./assets/Montserrat-Regular.ttf",FONT_SIZE);
 	if( font == NULL ) {
-		printf("Error: %s\n", SDL_GetError());
+		fprintf(stderr, "Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
@@ -177,22 +175,36 @@ int main(int argc, char **argv) {
 		
 		//logic
 		current_scene->check_input(mouse_x, mouse_y, left_mouse_button_down);
-		
-		if(patch_button_pressed) {
-			if(files_status == 0) {
-				tr3gold_modifier.replace_bytes(target, target_size, replace, replace_size);
+	
+		if( (patch_button_pressed && (files_status == 0) ) || promt_yes_button_pressed ) {
+			int modifier_return_value = tr3gold_modifier.replace_bytes(target, target_size, replace, replace_size);
+			
+			if(modifier_return_value != 0) {
+				main_scene.clear();
+				main_scene.add_text(new Text("Error while patching the file", 0, red_color, font));
+			
+				if( modifier_return_value & ERROR_READING_INPUT_FILE) main_scene.add_text(new Text("Error: while reading input file", FONT_SIZE, red_color, font));
+				if( modifier_return_value & ERROR_MULTIPLE_TARGET_LOCATION) main_scene.add_text(new Text("Error: Multiple target location found", FONT_SIZE, red_color, font));
+				if( modifier_return_value & ERROR_WRITING_BACKUP_FILE) main_scene.add_text(new Text("Error: while creating backup file", FONT_SIZE, red_color, font));
+				if( modifier_return_value & ERROR_TARGET_NOT_FOUND) main_scene.add_text(new Text("Error: Target bytes were not found", FONT_SIZE, red_color, font));
+				if( modifier_return_value & ERROR_MODIFYING_FILE) main_scene.add_text(new Text("Error: Couldn't modify the file", FONT_SIZE, red_color, font));
+				
+				current_scene = &main_scene;
 			}
 			else {
-				current_scene = &promt_scene;
+				main_scene.clear();
+				main_scene.add_text(new Text("Sucess, the file was patched", 0, green_color, font));
+				current_scene = &main_scene;
 			}
+
+		}
+
+		if( patch_button_pressed && (files_status != 0) ) {
+			current_scene = &promt_scene;
 		}
 
 		if(promt_no_button_pressed) {
 			current_scene = &main_scene;
-		}
-
-		if(promt_yes_button_pressed) {
-			tr3gold_modifier.replace_bytes(target, target_size, replace, replace_size);
 		}
 
 		//rendering
