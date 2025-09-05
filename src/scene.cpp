@@ -25,6 +25,12 @@ void Scene::render(SDL_Renderer* renderer) {
 		texts[i]->render(renderer);
 	}
 }
+
+void Scene::print() {
+	for(unsigned int i=0; i < texts.size(); i++) {
+		texts[i]->print();
+	}
+}
 /// \endcond
 
 

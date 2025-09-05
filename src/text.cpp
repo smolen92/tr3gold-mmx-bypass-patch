@@ -35,6 +35,10 @@ void Text::render(SDL_Renderer* renderer) {
 		SDL_DestroySurface(temp_text_surface);
 		temp_text_surface = NULL;
 }
+
+void Text::print() {
+	fprintf(stdout, "%s\n", this->text);
+}
 /// \endcond
 
 Text::~Text() {

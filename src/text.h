@@ -28,6 +28,8 @@ class Text {
 	
 		/// \cond
 		void render(SDL_Renderer* renderer);
+		
+		void print();
 		/// \endcond
 
 		~Text();

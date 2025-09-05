@@ -26,9 +26,11 @@ class Scene {
 		 * @brief same as button check_input
 		 */
 		void check_input(float mousex, float mousey, bool LMB_state);
-
+		
 		/// \cond
 		void render(SDL_Renderer* renderer);
+	
+		void print();
 		/// \endcond
 		
 		/**
