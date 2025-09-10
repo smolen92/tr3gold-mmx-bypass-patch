@@ -21,7 +21,9 @@ int Gui::gui_init(TTF_Font** font) {
 	if(renderer == NULL) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());
 	}
-	
+
+	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
 	*font = TTF_OpenFont("./assets/Montserrat-Regular.ttf",FONT_SIZE);
 	if( font == NULL ) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());

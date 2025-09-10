@@ -45,12 +45,12 @@ class Gui {
 		void print();
 
 		~Gui();
-		
+			
 		/// \cond
 		Scene* current_scene;
+		SDL_Renderer* renderer;
 		/// \endcond
 	private:
-		SDL_Renderer* renderer;
 		SDL_Window* window;
 		float mouse_x, mouse_y;
 		bool left_mouse_button_down;

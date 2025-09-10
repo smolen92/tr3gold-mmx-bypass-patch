@@ -2,8 +2,7 @@
 #include "gui.h"
 
 /// \file
-/// \todo get rid of magic numbers when creating scene
-/// \todo button gfx
+/// \todo add button asset 
 
 /// \cond
 int main(int argc, char **argv) {
@@ -89,54 +88,57 @@ int main(int argc, char **argv) {
 	SDL_Color yellow_color = {0xFF,0xFF,0x00,0xFF};
 	bool patch_button_state = true;
 
+	int main_scene_row = 0;
+	int promt_scene_row = 0;
+	
 	Scene main_scene, promt_scene;
-	if(!cli) main_scene.add_text(new Text("Tr3gold MMX bypass patch", 0, white_color, font));
-
+	if(!cli) main_scene.add_text(new Text("Tr3gold MMX bypass patch", FONT_SIZE*(main_scene_row++), white_color, font));
+	
 	if(files_status != 0) {
 		if( files_status & ERROR_INPUT_FILE_NOT_FOUND) {
-			main_scene.add_text(new Text("Error: Input file not found", FONT_SIZE, red_color, font));
+			main_scene.add_text(new Text("Error: Input file not found", FONT_SIZE*(main_scene_row++), red_color, font));
 			patch_button_state = false;
 		}
 
 		if( files_status & ERROR_CANNOT_OPEN_BACKUP_FILE) {
-			promt_scene.add_text(new Text("Error: Cannot open backup file", 0, red_color, font));
+			promt_scene.add_text(new Text("Error: Cannot open backup file", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
 
 		if( files_status & ERROR_UNKNOWN_MESSAGE_DIGEST_MD5) {
-			promt_scene.add_text(new Text("Error: Unknown message digest md5", 2*FONT_SIZE, red_color, font));
+			promt_scene.add_text(new Text("Error: Unknown message digest md5", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
 
 		if( files_status & ERROR_MESSAGE_DIGEST_CREATE_FAILED) {
-			promt_scene.add_text(new Text("Error: Digest create failed", 2*FONT_SIZE, red_color, font));
+			promt_scene.add_text(new Text("Error: Digest create failed", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
 
 		if( files_status & ERROR_MESSAGE_DIGEST_INITIALIZATION_FAILED) {
-			main_scene.add_text(new Text("Error: Digest initialization failed", 2*FONT_SIZE, red_color, font));
+			main_scene.add_text(new Text("Error: Digest initialization failed", FONT_SIZE*(main_scene_row++), red_color, font));
 		}
 
 		if( files_status & ERROR_MESSAGE_DIGEST_UPDATE_FAILED) {
-			promt_scene.add_text(new Text("Error: Message digest update failed", 2*FONT_SIZE, red_color, font));
+			promt_scene.add_text(new Text("Error: Message digest update failed", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
 
 		if( files_status & ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED) {
-			promt_scene.add_text(new Text("Error: Message digest finalization failed", 2*FONT_SIZE, red_color, font));
+			promt_scene.add_text(new Text("Error: Message digest finalization failed", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
 	
 		if( files_status & ERROR_MD5_SUM_DOESNT_MATCH) {
-			promt_scene.add_text(new Text("Error: Md5 checksum doesn't match", 3*FONT_SIZE, red_color, font));
+			promt_scene.add_text(new Text("Error: Md5 checksum doesn't match", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
 
-		if(!cli) main_scene.add_text(new Text("Warning: Some test didn't pass", 2*FONT_SIZE, yellow_color, font));
-		main_scene.add_button(new Button(600,100, 100,50, patch_button_state, &patch_button_pressed));
+		if(!cli) main_scene.add_text(new Text("Warning: Some test didn't pass", FONT_SIZE*(main_scene_row++), yellow_color, font));
+		main_scene.add_button(new Button(600,100, 100,50, patch_button_state, &patch_button_pressed, "./assets/button.png", gui.renderer));
 		if(!cli) {
-			promt_scene.add_button(new Button(450, 100, 100, 50, true, &promt_no_button_pressed));
-			promt_scene.add_button(new Button(600, 100, 100, 50, true, &promt_yes_button_pressed));
-			promt_scene.add_text(new Text("Try to patch the file anyway?", 4*FONT_SIZE, white_color, font));
+			promt_scene.add_button(new Button(450, 100, 100, 50, true, &promt_no_button_pressed, "./assets/button.png", gui.renderer));
+			promt_scene.add_button(new Button(600, 100, 100, 50, true, &promt_yes_button_pressed, "./assets/button.png", gui.renderer));
+			promt_scene.add_text(new Text("Try to patch the file anyway?", FONT_SIZE*(promt_scene_row++), white_color, font));
 		}
 	}
 	else {
-		main_scene.add_button(new Button(600,100,100,50,true,&patch_button_pressed));
-		main_scene.add_text(new Text("Every test passed", FONT_SIZE, green_color, font));
+		main_scene.add_button(new Button(600,100,100,50,true,&patch_button_pressed, "./assets/button.png", gui.renderer));
+		main_scene.add_text(new Text("Every test passed", FONT_SIZE*(main_scene_row++), green_color, font));
 	}
 
 	gui.current_scene = &main_scene;
@@ -169,20 +171,22 @@ int main(int argc, char **argv) {
 			
 			if(modifier_return_value != 0) {
 				main_scene.clear();
-				main_scene.add_text(new Text("Error while patching the file", 0, red_color, font));
+				main_scene_row = 0;
+				main_scene.add_text(new Text("Error while patching the file", FONT_SIZE*(main_scene_row++), red_color, font));
 			
-				if( modifier_return_value & ERROR_INPUT_BUFFER_ALLOCATION) main_scene.add_text(new Text("Error: failed to allocate bugger for input file", FONT_SIZE, red_color, font));
-				if( modifier_return_value & ERROR_READING_INPUT_FILE) main_scene.add_text(new Text("Error: while reading input file", FONT_SIZE, red_color, font));
-				if( modifier_return_value & ERROR_MULTIPLE_TARGET_LOCATION) main_scene.add_text(new Text("Error: Multiple target location found", FONT_SIZE, red_color, font));
-				if( modifier_return_value & ERROR_WRITING_BACKUP_FILE) main_scene.add_text(new Text("Error: while creating backup file", FONT_SIZE, red_color, font));
-				if( modifier_return_value & ERROR_TARGET_NOT_FOUND) main_scene.add_text(new Text("Error: Target bytes were not found", FONT_SIZE, red_color, font));
-				if( modifier_return_value & ERROR_MODIFYING_FILE) main_scene.add_text(new Text("Error: Couldn't modify the file", FONT_SIZE, red_color, font));
+				if( modifier_return_value & ERROR_INPUT_BUFFER_ALLOCATION) main_scene.add_text(new Text("Error: failed to allocate bugger for input file", FONT_SIZE*(main_scene_row++), red_color, font));
+				if( modifier_return_value & ERROR_READING_INPUT_FILE) main_scene.add_text(new Text("Error: while reading input file", FONT_SIZE*(main_scene_row++), red_color, font));
+				if( modifier_return_value & ERROR_MULTIPLE_TARGET_LOCATION) main_scene.add_text(new Text("Error: Multiple target location found", FONT_SIZE*(main_scene_row++), red_color, font));
+				if( modifier_return_value & ERROR_WRITING_BACKUP_FILE) main_scene.add_text(new Text("Error: while creating backup file", FONT_SIZE*(main_scene_row++), red_color, font));
+				if( modifier_return_value & ERROR_TARGET_NOT_FOUND) main_scene.add_text(new Text("Error: Target bytes were not found", FONT_SIZE*(main_scene_row++), red_color, font));
+				if( modifier_return_value & ERROR_MODIFYING_FILE) main_scene.add_text(new Text("Error: Couldn't modify the file", FONT_SIZE*(main_scene_row++), red_color, font));
 				
 				gui.current_scene = &main_scene;
 			}
 			else {
 				main_scene.clear();
-				main_scene.add_text(new Text("Sucess, the file was patched", 0, green_color, font));
+				main_scene_row = 0;
+				main_scene.add_text(new Text("Sucess, the file was patched", FONT_SIZE*(main_scene_row++), green_color, font));
 				gui.current_scene = &main_scene;
 			}
 
@@ -201,6 +205,9 @@ int main(int argc, char **argv) {
 		}
 
 	} while(running);
+	
+	main_scene.clear();
+	promt_scene.clear();
 
 	return 0;
 }
