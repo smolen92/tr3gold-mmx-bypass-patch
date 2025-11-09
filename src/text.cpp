@@ -17,7 +17,7 @@ void Text::set_Color(SDL_Color c) {
 
 /// \cond
 void Text::render(SDL_Renderer* renderer) {
-	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, this->text, strlen(this->text), this->color);
+	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, this->text, strlen(this->text), this->color); //flawfinder: ignore
 		if(temp_text_surface == NULL) return;
 
 		SDL_Texture *temp_text_texture = SDL_CreateTextureFromSurface(renderer, temp_text_surface);

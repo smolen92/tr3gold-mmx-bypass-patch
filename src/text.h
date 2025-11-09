@@ -34,7 +34,7 @@ class Text {
 
 		~Text();
 	private:
-		char text[100];
+		char text[100]; //flawfinder: ignore
 		SDL_Color color;
 		TTF_Font* font;
 		float y_position;

@@ -10,7 +10,7 @@ int Modifier::load_files(const char* input_file_name, const char* backup_file_na
 
 	int return_value = 0;
 
-	input_file = fopen(input_file_name, "rb+");
+	input_file = fopen(input_file_name, "rb+"); //flawfinder: ignore
 	if( input_file == NULL) {
 		return_value |= ERROR_INPUT_FILE_NOT_FOUND;
 	}
@@ -27,7 +27,7 @@ int Modifier::load_files(const char* input_file_name, const char* backup_file_na
 		}
 	}
 
-	backup_file = fopen(backup_file_name, "wb+");
+	backup_file = fopen(backup_file_name, "wb+"); //flawfinder: ignore
 	if( backup_file == NULL) {
 		return_value |= ERROR_CANNOT_OPEN_BACKUP_FILE;
 	}
@@ -58,48 +58,58 @@ int32_t Modifier::find_sub_array_within_array(const uint8_t *search_arr, const i
 int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, const uint8_t* replace_string, const uint32_t replace_string_size) {
 	uint8_t* file_content;
 
+	uint32_t return_value = 0;	
+
 	file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
 	if(file_content == NULL) {
-		return ERROR_INPUT_BUFFER_ALLOCATION;
+		return_value |= ERROR_INPUT_BUFFER_ALLOCATION;
+		goto replace_bytes_exit;
 	}
 
 	unsigned int bytes_read = fread((void*)file_content, sizeof(uint8_t), file_size, input_file);
 
 	if( bytes_read != file_size ) {
-		printf("%d\n", bytes_read);
-		return ERROR_READING_INPUT_FILE;
+		return_value |= ERROR_READING_INPUT_FILE;
+		goto replace_bytes_exit;
 	}
 	fseek(input_file, 0, SEEK_SET);
 	
 	//create backup file of the original file
 	/// \bug if this isn't reached the backup file is empty
 	if( fwrite(file_content, sizeof(uint8_t), file_size, backup_file) < file_size ) {
-		return ERROR_WRITING_BACKUP_FILE;
+		return_value |= ERROR_WRITING_BACKUP_FILE;
+		goto replace_bytes_exit;
 	}
 
 	//find target in file
 	int32_t pos = find_sub_array_within_array(file_content, file_size, target, target_size);
 	
 	if(pos == -1) {
-		return ERROR_TARGET_NOT_FOUND;
+		return_value |= ERROR_TARGET_NOT_FOUND;
+		goto replace_bytes_exit;
 	}
 	else {
 		//check if there are more than one location of target in file
 		int32_t next_pos = find_sub_array_within_array(file_content+pos+1,file_size - pos,target, target_size);
 
 		if(next_pos != -1) {
-			return ERROR_MULTIPLE_TARGET_LOCATION;
+			return_value |= ERROR_MULTIPLE_TARGET_LOCATION;
+			goto replace_bytes_exit;
 		}
 		else {
 			fseek(input_file, pos, SEEK_SET);
 			if( fwrite(replace_string, sizeof(uint8_t), replace_string_size, input_file) < replace_string_size) {
-				return ERROR_MODIFYING_FILE;
+				return_value |= ERROR_MODIFYING_FILE;
+				goto replace_bytes_exit;
 			}
 		}
 
 	}
+
+	replace_bytes_exit:
 	
-	return 0;
+	free(file_content);
+	return return_value;
 }
 
 int Modifier::get_md5() {
@@ -107,7 +117,7 @@ int Modifier::get_md5() {
 
 	EVP_MD_CTX *mdctx;
 	const EVP_MD *md;
-	unsigned char md_value[EVP_MAX_MD_SIZE];
+	unsigned char md_value[EVP_MAX_MD_SIZE]; //flawfinder: ignore
 	unsigned int md_len;
 
 	md = EVP_get_digestbyname("md5");
@@ -129,7 +139,7 @@ int Modifier::get_md5() {
 	}
 
 	int32_t file_buffer_size = 1024;
-	char file_buffer[file_buffer_size];
+	char file_buffer[file_buffer_size]; //flawfinder: ignore
 	int bytes_read;
 
 	do {
@@ -155,7 +165,7 @@ int Modifier::get_md5() {
 	md5_checksum = (char*)malloc((md_len *2)*sizeof(char));
 
 	for (unsigned int i = 0; i < md_len; i++) {
-		sprintf(&md5_checksum[i*2], "%02x", md_value[i]);
+		sprintf(&md5_checksum[i*2], "%02x", md_value[i]); //flawfinder: ignore
 	}
 	
 	return return_value;

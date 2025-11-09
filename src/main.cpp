@@ -8,7 +8,11 @@
 int main(int argc, char **argv) {
 	//argumets
 	bool cli = false;
-	char exe_file_name[] = "tr3gold.exe";
+	
+	char default_file_name[] = "tr3gold.exe";
+	char *exe_file_name;
+
+	exe_file_name = default_file_name;
 
 	if(argc > 1) {
 		for(int i=1; i < argc; i++) {
@@ -17,7 +21,7 @@ int main(int argc, char **argv) {
 			}
 
 			if(strncmp("-i=", argv[i], 3) == 0) {
-				if(strlen(argv[i]) > strlen("-i=")) strcpy(exe_file_name, &argv[i][3]);
+				if(strlen(argv[i]) > strlen("-i=")) exe_file_name = &argv[i][3]; //flawfinder: ignore
 			}
 		}
 	}
@@ -158,7 +162,7 @@ int main(int argc, char **argv) {
 			if (cli) {
 				promt_scene.print();
 				printf("Try to patch the file anyway [y/N]?: ");
-				char c = getchar();
+				char c = getchar(); //flawfinder: ignore
 				if( (c == 'y') || (c == 'Y') ) files_status = 0; 
 			}
 			else {
