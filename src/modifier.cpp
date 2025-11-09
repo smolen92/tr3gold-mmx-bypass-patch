@@ -58,58 +58,55 @@ int32_t Modifier::find_sub_array_within_array(const uint8_t *search_arr, const i
 int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, const uint8_t* replace_string, const uint32_t replace_string_size) {
 	uint8_t* file_content;
 
-	uint32_t return_value = 0;	
-
 	file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
 	if(file_content == NULL) {
-		return_value |= ERROR_INPUT_BUFFER_ALLOCATION;
-		goto replace_bytes_exit;
+		free(file_content);
+		return ERROR_INPUT_BUFFER_ALLOCATION;
 	}
 
 	unsigned int bytes_read = fread((void*)file_content, sizeof(uint8_t), file_size, input_file);
 
 	if( bytes_read != file_size ) {
-		return_value |= ERROR_READING_INPUT_FILE;
-		goto replace_bytes_exit;
+		free(file_content);
+		return ERROR_READING_INPUT_FILE;
 	}
 	fseek(input_file, 0, SEEK_SET);
 	
 	//create backup file of the original file
 	/// \bug if this isn't reached the backup file is empty
 	if( fwrite(file_content, sizeof(uint8_t), file_size, backup_file) < file_size ) {
-		return_value |= ERROR_WRITING_BACKUP_FILE;
-		goto replace_bytes_exit;
+		free(file_content);
+		return ERROR_WRITING_BACKUP_FILE;
 	}
 
 	//find target in file
 	int32_t pos = find_sub_array_within_array(file_content, file_size, target, target_size);
 	
 	if(pos == -1) {
-		return_value |= ERROR_TARGET_NOT_FOUND;
-		goto replace_bytes_exit;
+		free(file_content);
+		return ERROR_TARGET_NOT_FOUND;
 	}
 	else {
 		//check if there are more than one location of target in file
 		int32_t next_pos = find_sub_array_within_array(file_content+pos+1,file_size - pos,target, target_size);
 
 		if(next_pos != -1) {
-			return_value |= ERROR_MULTIPLE_TARGET_LOCATION;
-			goto replace_bytes_exit;
+			free(file_content);
+			return ERROR_MULTIPLE_TARGET_LOCATION;
 		}
 		else {
 			fseek(input_file, pos, SEEK_SET);
 			if( fwrite(replace_string, sizeof(uint8_t), replace_string_size, input_file) < replace_string_size) {
-				return_value |= ERROR_MODIFYING_FILE;
-				goto replace_bytes_exit;
+				free(file_content);
+				return ERROR_MODIFYING_FILE;
 			}
 		}
 
 	}
 
-	replace_bytes_exit:
-	
 	free(file_content);
-	return return_value;
+
+	return 0;
 }
 
 int Modifier::get_md5() {

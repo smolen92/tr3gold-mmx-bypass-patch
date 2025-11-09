@@ -2,7 +2,7 @@
 #include "gui.h"
 
 /// \file
-/// \todo add button asset 
+/// \todo add button text 
 
 /// \cond
 int main(int argc, char **argv) {
