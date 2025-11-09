@@ -1,6 +1,6 @@
 #include "button.h"
 
-Button::Button(int x, int y, int w, int h, bool active, bool* action, const char* path, SDL_Renderer* renderer) {
+Button::Button(int x, int y, int w, int h, bool active, bool* action, const char* path, const char* text, TTF_Font* font, SDL_Renderer* renderer) {
 	button_rect.x = x;
 	button_rect.y = y;
 	button_rect.w = w;
@@ -16,6 +16,8 @@ Button::Button(int x, int y, int w, int h, bool active, bool* action, const char
 	this->active = active;
 	
 	this->action = action;
+
+	button_text = new Text(text, 0, {0x00,0x00,0x00,0xFF}, font); 
 
 	button_texture = IMG_LoadTexture(renderer, path);
 	if(button_texture == NULL) {
@@ -70,11 +72,14 @@ void Button::render(SDL_Renderer* renderer) {
 	SDL_RenderTexture(renderer, button_texture, NULL, &button_rect);
 	SDL_SetRenderDrawColor(renderer, button_color.r, button_color.g, button_color.b, button_color.a);
 	SDL_RenderFillRect(renderer, &button_rect);
+	button_text->render(renderer,button_rect.x+15, button_rect.y);
 }
 /// \endcond
 
 Button::~Button() {
 	SDL_DestroyTexture(button_texture);
 	button_texture = NULL;
+	delete button_text;
+	button_text = NULL;
 }
 

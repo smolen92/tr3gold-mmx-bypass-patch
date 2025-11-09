@@ -16,13 +16,15 @@ void Text::set_Color(SDL_Color c) {
 }
 
 /// \cond
-void Text::render(SDL_Renderer* renderer) {
+void Text::render(SDL_Renderer* renderer, int32_t x_position, int32_t y_position) {
 	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, this->text, strlen(this->text), this->color); //flawfinder: ignore
 		if(temp_text_surface == NULL) return;
 
 		SDL_Texture *temp_text_texture = SDL_CreateTextureFromSurface(renderer, temp_text_surface);
 		if(temp_text_texture != NULL) {	
-			SDL_FRect dst = {0,this->y_position,0,0};
+			SDL_FRect dst = {(float)x_position,this->y_position,0,0};
+
+			if(y_position != -1) dst.y = (float)y_position;
 
 			SDL_GetTextureSize(temp_text_texture, &dst.w, &dst.h);
 

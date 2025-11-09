@@ -8,6 +8,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
+#define FONT_SIZE 28
+
 /**
  * @brief class for handling displayed text
  */
@@ -25,10 +27,11 @@ class Text {
 		 * @param c - color of the text
 		 */
 		void set_Color(SDL_Color c);
-	
-		/// \cond
-		void render(SDL_Renderer* renderer);
+
+		/// \todo re-do text rendering
+		void render(SDL_Renderer* renderer, int32_t x_position = 0, int32_t y_position = -1);
 		
+		/// \cond
 		void print();
 		/// \endcond
 
