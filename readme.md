@@ -13,18 +13,31 @@ This patch change that the default value is 0, turning this settings off.
 ## Compilation 
 
 1. Clone this repository
-2. Install OpenSSL for windows
-3. Compile the patch with:
+2. Install OpenSSL
+3. run make
+for windows:
 ```bash
-gcc -o tr3gold-mmx-bypass.exe main.cpp -I"C:\Program Files\OpenSSL-Win64\include" -L"C:\Program Files\OpenSSL-Win64\lib\VC\x64\MT" -lcrypto
+make tr3gold-mmx-bypass.exe
 ```
-4. Run the patch with:
+for linux:
 ```bash
-tr3gold-mmx-bypass.exe <path-to-the-executable>
+make
+```
+
+## Usage:
+Run the patch with:
+```bash
+tr3gold-mmx-bypass.exe -i=<path-to-the-executable>
 ```
 Example:
 ```bash
-tr3gold-mmx-bypass.exe "C:\Program Files (x86)\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe"
+tr3gold-mmx-bypass.exe "C:\Games\Eidos\Tomb Raider 3 - The Lost Artefact\tr3gold.exe"
+```
+
+if no input file is specified, the program will try to open tr3gold.exe<br>
+the program can be run in terminal/command prompt with --cli argument
+```bash
+tr3gold-mmx-bypass.exe --cli
 ```
 
 ### Notes
