@@ -45,7 +45,7 @@ class Button {
 		bool active;
 		bool* action;
 		SDL_Texture* button_texture;
-		char button_text[100];			
+		char button_text[100];	//flawfinder: ignore
 };
 
 #endif

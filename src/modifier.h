@@ -35,13 +35,12 @@ class Modifier {
 		 * @brief open file to modify and file to backup the original file
 		 *
 		 * @param input_file_name name of input file
-		 * @param backup_file_name name of the backup file
 		 * @param md5_checksum md5 checksum that is check against
 		 *
 		 * @return 0 on success
 		 * @return bitwise or of error from modifiers error
 		 */
-		int load_files(const char* input_file_name, const char* backup_file_name, const char* md5_checksum);
+		int load_files(const char* input_file_name, const char* md5_checksum);
 
 		/**
 		 * @brief find the first occurrence of sub array within array
@@ -83,6 +82,8 @@ class Modifier {
 
 		char* md5_checksum;
 		uint32_t file_size;
+
+		uint8_t* file_content;
 };
 
 #endif

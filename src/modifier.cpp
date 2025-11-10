@@ -3,10 +3,11 @@
 Modifier::Modifier() {
 	input_file = NULL;
 	backup_file = NULL;
+	file_content = NULL;
 	md5_checksum = NULL;
 }
 
-int Modifier::load_files(const char* input_file_name, const char* backup_file_name, const char* md5_checksum) {
+int Modifier::load_files(const char* input_file_name, const char* md5_checksum) {
 
 	int return_value = 0;
 
@@ -20,18 +21,56 @@ int Modifier::load_files(const char* input_file_name, const char* backup_file_na
 		file_size = ftell(input_file);
 		fseek(input_file, 0, SEEK_SET);
 		
+		file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
+		if(file_content == NULL) {
+			free(file_content);
+			return_value |= ERROR_INPUT_BUFFER_ALLOCATION;
+		}
+
+		unsigned int bytes_read = fread((void*)file_content, sizeof(uint8_t), file_size, input_file);
+
+		if( bytes_read != file_size ) {
+			return_value |= ERROR_READING_INPUT_FILE;
+		}
+		fseek(input_file, 0, SEEK_SET);
+	
+
 		return_value |= this->get_md5();
 
 		if( (return_value == 0) && (strcmp(md5_checksum, this->md5_checksum) != 0) ) {
 			return_value |= ERROR_MD5_SUM_DOESNT_MATCH;
 		}
 	}
+	
+	char* backup_file_name;
+	uint32_t input_file_name_length = strlen(input_file_name); //flawfinder: ignore
 
-	backup_file = fopen(backup_file_name, "wb+"); //flawfinder: ignore
-	if( backup_file == NULL) {
+	backup_file_name = (char*)malloc((input_file_name_length+1)*sizeof(char));
+	if(backup_file_name == NULL) {
 		return_value |= ERROR_CANNOT_OPEN_BACKUP_FILE;
 	}
+	else {
+		strlcpy(backup_file_name, input_file_name,input_file_name_length);
+		//change extension from exe to bak
+		strcpy(&backup_file_name[input_file_name_length-3], "bak"); //flawfinder: ignore
 
+		backup_file = fopen(backup_file_name, "wbx"); //flawfinder: ignore
+		if( backup_file == NULL) {
+			return_value |= ERROR_CANNOT_OPEN_BACKUP_FILE;
+		}
+		else {
+			//create backup file of the original file
+			if( fwrite(file_content, sizeof(uint8_t), file_size, backup_file) < file_size ) {
+				return_value |= ERROR_WRITING_BACKUP_FILE;
+			}
+	
+			fclose(backup_file);
+			backup_file = NULL;
+		}
+		
+
+	}
+	
 	return return_value;
 }
 	
@@ -56,34 +95,10 @@ int32_t Modifier::find_sub_array_within_array(const uint8_t *search_arr, const i
 }
 
 int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, const uint8_t* replace_string, const uint32_t replace_string_size) {
-	uint8_t* file_content;
-
-	file_content = (uint8_t*)malloc((file_size)*sizeof(uint8_t));
-	if(file_content == NULL) {
-		free(file_content);
-		return ERROR_INPUT_BUFFER_ALLOCATION;
-	}
-
-	unsigned int bytes_read = fread((void*)file_content, sizeof(uint8_t), file_size, input_file);
-
-	if( bytes_read != file_size ) {
-		free(file_content);
-		return ERROR_READING_INPUT_FILE;
-	}
-	fseek(input_file, 0, SEEK_SET);
-	
-	//create backup file of the original file
-	/// \bug if this isn't reached the backup file is empty
-	if( fwrite(file_content, sizeof(uint8_t), file_size, backup_file) < file_size ) {
-		free(file_content);
-		return ERROR_WRITING_BACKUP_FILE;
-	}
-
 	//find target in file
 	int32_t pos = find_sub_array_within_array(file_content, file_size, target, target_size);
 	
 	if(pos == -1) {
-		free(file_content);
 		return ERROR_TARGET_NOT_FOUND;
 	}
 	else {
@@ -91,20 +106,16 @@ int Modifier::replace_bytes(const uint8_t* target, const uint32_t target_size, c
 		int32_t next_pos = find_sub_array_within_array(file_content+pos+1,file_size - pos,target, target_size);
 
 		if(next_pos != -1) {
-			free(file_content);
 			return ERROR_MULTIPLE_TARGET_LOCATION;
 		}
 		else {
 			fseek(input_file, pos, SEEK_SET);
 			if( fwrite(replace_string, sizeof(uint8_t), replace_string_size, input_file) < replace_string_size) {
-				free(file_content);
 				return ERROR_MODIFYING_FILE;
 			}
 		}
 
 	}
-
-	free(file_content);
 
 	return 0;
 }
@@ -135,21 +146,11 @@ int Modifier::get_md5() {
 		return return_value;
 	}
 
-	int32_t file_buffer_size = 1024;
-	char file_buffer[file_buffer_size]; //flawfinder: ignore
-	int bytes_read;
-
-	do {
-		bytes_read = fread(file_buffer, sizeof(char), file_buffer_size, input_file);
-		if (!EVP_DigestUpdate(mdctx, file_buffer, bytes_read) ) {
-			return_value |= ERROR_MESSAGE_DIGEST_UPDATE_FAILED;
-			EVP_MD_CTX_free(mdctx);
-			return return_value;
-    		}
-
-	} while( bytes_read > 0);
-
-	fseek(input_file, 0, SEEK_SET);
+	if (!EVP_DigestUpdate(mdctx, file_content, file_size) ) {
+		return_value |= ERROR_MESSAGE_DIGEST_UPDATE_FAILED;
+		EVP_MD_CTX_free(mdctx);
+		return return_value;
+    	}
 	
 	if (!EVP_DigestFinal_ex(mdctx, md_value, &md_len)) {
 		return_value |= ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED;
@@ -170,8 +171,12 @@ int Modifier::get_md5() {
 
 Modifier::~Modifier() {
 	if(input_file != NULL) fclose(input_file);
-	if(backup_file != NULL) fclose(backup_file);
+	input_file = NULL;
 
 	if(md5_checksum != NULL) free(md5_checksum);
+	md5_checksum = NULL;
+
+	free(file_content);
+	file_content = NULL;
 }
 

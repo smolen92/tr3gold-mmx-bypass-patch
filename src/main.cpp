@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 	//Modifier setup
 	Modifier tr3gold_modifier;
 	
-	int files_status = tr3gold_modifier.load_files(exe_file_name, "tr3gold.bak", compatible_md5sum);
+	int files_status = tr3gold_modifier.load_files(exe_file_name, compatible_md5sum);
 
 	//gui/cli selection	
 	TTF_Font* font;
