@@ -133,16 +133,16 @@ int main(int argc, char **argv) {
 
 		if(!cli) main_scene.add_text(new Text("Warning: Some test didn't pass", FONT_SIZE*(main_scene_row++), yellow_color, font));
 		
-		main_scene.add_button(new Button(600,100, 120,40, patch_button_state, &patch_button_pressed, "./assets/button.png", "Patch", font, gui.renderer));
+		main_scene.add_button(new Button(600,100, 120,40, patch_button_state, &patch_button_pressed, "./assets/button.png", "Patch", gui.renderer));
 		
 		if(!cli) {
-			promt_scene.add_button(new Button(450, 100, 120, 40, true, &promt_no_button_pressed, "./assets/button.png", "No", font, gui.renderer));
-			promt_scene.add_button(new Button(600, 100, 120, 40, true, &promt_yes_button_pressed, "./assets/button.png", "Yes", font, gui.renderer));
+			promt_scene.add_button(new Button(450, 100, 120, 40, true, &promt_no_button_pressed, "./assets/button.png", "No", gui.renderer));
+			promt_scene.add_button(new Button(600, 100, 120, 40, true, &promt_yes_button_pressed, "./assets/button.png", "Yes",  gui.renderer));
 			promt_scene.add_text(new Text("Try to patch the file anyway?", FONT_SIZE*(promt_scene_row++), white_color, font));
 		}
 	}
 	else {
-		main_scene.add_button(new Button(600,100,120,40,true,&patch_button_pressed, "./assets/button.png", "Patch", font, gui.renderer));
+		main_scene.add_button(new Button(600,100,120,40,true,&patch_button_pressed, "./assets/button.png", "Patch", gui.renderer));
 		main_scene.add_text(new Text("Every test passed", FONT_SIZE*(main_scene_row++), green_color, font));
 	}
 
@@ -206,7 +206,7 @@ int main(int argc, char **argv) {
 			gui.print();
 		}
 		else {
-			gui.render();
+			gui.render(font);
 		}
 
 	} while(running);

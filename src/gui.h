@@ -33,7 +33,7 @@ class Gui {
 		/**
 		 * @brief render the scene to window
 		 */
-		void render();
+		void render(TTF_Font* font);
 		
 		/**
 		 * @brief print the scene to terminal/cli

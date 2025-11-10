@@ -16,15 +16,13 @@ void Text::set_Color(SDL_Color c) {
 }
 
 /// \cond
-void Text::render(SDL_Renderer* renderer, int32_t x_position, int32_t y_position) {
-	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, this->text, strlen(this->text), this->color); //flawfinder: ignore
+void Text::render(int32_t x_position, int32_t y_position, const char* text, SDL_Color color, TTF_Font* font, SDL_Renderer* renderer) {
+	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, text, strlen(text), color); //flawfinder: ignore
 		if(temp_text_surface == NULL) return;
 
 		SDL_Texture *temp_text_texture = SDL_CreateTextureFromSurface(renderer, temp_text_surface);
 		if(temp_text_texture != NULL) {	
-			SDL_FRect dst = {(float)x_position,this->y_position,0,0};
-
-			if(y_position != -1) dst.y = (float)y_position;
+			SDL_FRect dst = {(float)x_position,(float)y_position,0,0};
 
 			SDL_GetTextureSize(temp_text_texture, &dst.w, &dst.h);
 
@@ -38,6 +36,10 @@ void Text::render(SDL_Renderer* renderer, int32_t x_position, int32_t y_position
 		temp_text_surface = NULL;
 }
 
+void Text::render(SDL_Renderer* renderer) {
+	this->render(0, this->y_position, this->text, this->color, this->font, renderer); 
+}
+	
 void Text::print() {
 	fprintf(stdout, "%s\n", this->text);
 }

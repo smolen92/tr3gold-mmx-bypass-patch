@@ -16,9 +16,9 @@ void Scene::check_input(float mousex, float mousey, bool LMB_state) {
 }
 
 /// \cond
-void Scene::render(SDL_Renderer* renderer) {
+void Scene::render(SDL_Renderer* renderer, TTF_Font* font) {
 	for(unsigned int i=0; i < buttons.size(); i++) {
-		buttons[i]->render(renderer);
+		buttons[i]->render(renderer, font);
 	}
 
 	for(unsigned int i=0; i < texts.size(); i++) {

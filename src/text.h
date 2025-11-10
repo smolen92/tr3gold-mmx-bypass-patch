@@ -28,10 +28,22 @@ class Text {
 		 */
 		void set_Color(SDL_Color c);
 
-		/// \todo re-do text rendering
-		void render(SDL_Renderer* renderer, int32_t x_position = 0, int32_t y_position = -1);
-		
+		/**
+		 * @brief render the text on screen
+		 *
+		 * @param x_position x postion of the text
+		 * @param y_position y position of the text
+		 * @param text pointer to text to render
+		 * @param color color of the text
+		 * @param font text's font
+		 * @param renderer renderer to render the text to
+		 *
+		 */
+		static void render(int32_t x_position, int32_t y_position, const char* text, SDL_Color color, TTF_Font* font, SDL_Renderer* renderer);
+	
 		/// \cond
+		void render(SDL_Renderer* renderer);
+
 		void print();
 		/// \endcond
 

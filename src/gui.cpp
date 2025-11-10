@@ -64,11 +64,11 @@ void Gui::logic() {
 	current_scene->check_input(mouse_x, mouse_y, left_mouse_button_down);
 }
 
-void Gui::render() {
+void Gui::render(TTF_Font* font) {
 	SDL_SetRenderDrawColor(renderer, 0,0,0, 0xFF);
 	SDL_RenderClear(renderer);
 	
-	current_scene->render(renderer);
+	current_scene->render(renderer, font);
 
 	SDL_RenderPresent(renderer);
 

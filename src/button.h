@@ -19,9 +19,10 @@ class Button {
 		 * @param active - true if button should receive input, false if not
 		 * @param action - pointer to bool that is set to true if button was pressed
 		 * @param path - filesystem path to button image
+		 * @param text - text to render on the button
 		 * @param renderer - renderer that will be used
 		 */
-		Button(int x, int y, int w, int h, bool active, bool *action, const char* path, const char* text, TTF_Font* font, SDL_Renderer* renderer);
+		Button(int x, int y, int w, int h, bool active, bool *action, const char* path, const char* text, SDL_Renderer* renderer);
 		
 		/**
 		 * @brief check if button is pressed and trigger its function
@@ -35,7 +36,7 @@ class Button {
 		~Button();
 
 		/// \cond
-		void render(SDL_Renderer* renderer);
+		void render(SDL_Renderer* renderer, TTF_Font* font);
 		/// \endcond
 	private:
 		SDL_FRect button_rect;
@@ -44,7 +45,7 @@ class Button {
 		bool active;
 		bool* action;
 		SDL_Texture* button_texture;
-		Text* button_text;			
+		char button_text[100];			
 };
 
 #endif
