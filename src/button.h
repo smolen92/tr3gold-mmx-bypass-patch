@@ -1,9 +1,6 @@
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 
-#include <stdio.h>
-
-#include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
 #include "text.h"

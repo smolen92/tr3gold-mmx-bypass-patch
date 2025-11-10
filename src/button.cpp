@@ -30,15 +30,15 @@ void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_do
 		button_color.r = 0x2F;
 		button_color.g = 0x2F;
 		button_color.b = 0x2F;
+		button_color.a = 0xFF;
 
 		return;
 	}
 
+	button_color.a = 0x00;
+
 	if( (mouse_x < button_rect.x) || (mouse_x > button_rect.x + button_rect.w) ||
 		(mouse_y < button_rect.y) || (mouse_y > button_rect.y + button_rect.h) ) {
-			button_color.r = 0xFF;
-			button_color.g = 0x00;
-			button_color.b = 0x00;
 
 			previous_state = false;
 
@@ -48,8 +48,9 @@ void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_do
 	if(left_mouse_button_down) {
 		button_color.r = 0x00;
 		button_color.g = 0x00;
-		button_color.b = 0xFF;
-				
+		button_color.b = 0xE0;
+		button_color.a = 0xFF;		
+
 		previous_state = true;
 			
 		return;
@@ -61,8 +62,9 @@ void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_do
 	}
 
 	button_color.r = 0x00;
-	button_color.g = 0xFF;
+	button_color.g = 0xE0;
 	button_color.b = 0x00;
+	button_color.a = 0xFF;
 			
 }	
 

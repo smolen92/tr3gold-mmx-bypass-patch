@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "button.h"
-#include "text.h"
 
 /**
  * @brief class that contain button and text for 1 screen

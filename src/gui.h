@@ -1,10 +1,6 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 
-#include <stdio.h>
-#include <SDL3/SDL.h>
-#include <SDL3_ttf/SDL_ttf.h>
-
 #include "scene.h"
 
 /// \cond
