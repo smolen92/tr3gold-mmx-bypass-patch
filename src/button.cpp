@@ -27,15 +27,18 @@ Button::Button(int x, int y, int w, int h, bool active, bool* action, const char
 		
 void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_down) {
 	if(!active) {
+		//gray color modulation
 		button_color.r = 0x2F;
 		button_color.g = 0x2F;
 		button_color.b = 0x2F;
-		button_color.a = 0xFF;
 
 		return;
 	}
 
-	button_color.a = 0x00;
+	//no color modulation
+	button_color.r = 0xFF;
+	button_color.g = 0xFF;
+	button_color.b = 0xFF;
 
 	if( (mouse_x < button_rect.x) || (mouse_x > button_rect.x + button_rect.w) ||
 		(mouse_y < button_rect.y) || (mouse_y > button_rect.y + button_rect.h) ) {
@@ -46,10 +49,10 @@ void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_do
 	}
 
 	if(left_mouse_button_down) {
+		//blue color modulation
 		button_color.r = 0x00;
 		button_color.g = 0x00;
 		button_color.b = 0xE0;
-		button_color.a = 0xFF;		
 
 		previous_state = true;
 			
@@ -61,19 +64,18 @@ void Button::check_input(float mouse_x, float mouse_y, bool left_mouse_button_do
 		*action = true;
 	}
 
+	//green color modulation
 	button_color.r = 0x00;
 	button_color.g = 0xE0;
 	button_color.b = 0x00;
-	button_color.a = 0xFF;
 			
 }	
 
 /// \cond
 void Button::render(SDL_Renderer* renderer, TTF_Font* font) {
 	if(button_texture == NULL) return;
+	SDL_SetTextureColorMod(button_texture, button_color.r, button_color.g, button_color.b);
 	SDL_RenderTexture(renderer, button_texture, NULL, &button_rect);
-	SDL_SetRenderDrawColor(renderer, button_color.r, button_color.g, button_color.b, button_color.a);
-	SDL_RenderFillRect(renderer, &button_rect);
 	Text::render(button_rect.x+15, button_rect.y, this->button_text, {0,0,0,0xFF}, font, renderer);
 }
 /// \endcond
