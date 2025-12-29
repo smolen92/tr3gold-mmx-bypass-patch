@@ -48,7 +48,7 @@ class Gui {
 		/// \endcond
 	private:
 		SDL_Window* window;
-		float mouse_x, mouse_y;
+		int mouse_x, mouse_y;
 		bool left_mouse_button_down;
 };
 

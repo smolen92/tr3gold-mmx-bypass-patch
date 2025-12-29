@@ -2,22 +2,23 @@
 
 
 int Gui::gui_init(TTF_Font** font) {
-	if(!SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) ) {
+	
+	if( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_EVENTS) < -1 ) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
-	if(!TTF_Init()) {
+	if( TTF_Init() < -1 ) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());
 		return 1;
 	}
 
-	window = SDL_CreateWindow("Patch GUI", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN);
+	window = SDL_CreateWindow("Patch GUI", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN);
 	if( window == NULL) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());
 	}
 
-	renderer = SDL_CreateRenderer(window, NULL);
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
 	if(renderer == NULL) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());
 	}
@@ -41,15 +42,15 @@ void Gui::input(bool *running) {
 	SDL_Event input;
 
 	while(SDL_PollEvent(&input)) {
-		if(input.type == SDL_EVENT_QUIT) {
+		if(input.type == SDL_QUIT) {
 			*running = false;
 		}
 
-		if(input.button.type == SDL_EVENT_MOUSE_BUTTON_DOWN && input.button.button == 1) {
+		if(input.button.type == SDL_MOUSEBUTTONDOWN && input.button.button == 1) {
 			left_mouse_button_down = true;
 		}
 
-		if(input.button.type == SDL_EVENT_MOUSE_BUTTON_UP && input.button.button == 1) {
+		if(input.button.type == SDL_MOUSEBUTTONUP && input.button.button == 1) {
 			left_mouse_button_down = false;
 		}
 	}

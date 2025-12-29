@@ -1,6 +1,6 @@
 CXX = g++
 
-CXXFLAGS = -Wall -g -lSDL3 -lSDL3_ttf -lSDL3_image -lcrypto
+CXXFLAGS = -Wall -g -lSDL2 -lSDL2_ttf -lSDL2_image
 
 tr3gold-mmx-bypass.out: ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o
 	$(CXX) $(CXXFLAGS) -o tr3gold-mmx-bypass.out ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o

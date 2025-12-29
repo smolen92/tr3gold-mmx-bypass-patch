@@ -17,22 +17,22 @@ void Text::set_Color(SDL_Color c) {
 
 /// \cond
 void Text::render(int32_t x_position, int32_t y_position, const char* text, SDL_Color color, TTF_Font* font, SDL_Renderer* renderer) {
-	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, text, strlen(text), color); //flawfinder: ignore
+	SDL_Surface *temp_text_surface = TTF_RenderText_Solid(font, text, color); //flawfinder: ignore
 		if(temp_text_surface == NULL) return;
 
 		SDL_Texture *temp_text_texture = SDL_CreateTextureFromSurface(renderer, temp_text_surface);
 		if(temp_text_texture != NULL) {	
-			SDL_FRect dst = {(float)x_position,(float)y_position,0,0};
+			SDL_Rect dst = {x_position,y_position,0,0};
 
-			SDL_GetTextureSize(temp_text_texture, &dst.w, &dst.h);
+			SDL_QueryTexture(temp_text_texture, NULL, NULL, &dst.w, &dst.h);
 
-			SDL_RenderTexture(renderer, temp_text_texture, NULL, &dst);
+			SDL_RenderCopy(renderer, temp_text_texture, NULL, &dst); 
 
 			SDL_DestroyTexture(temp_text_texture);
 			temp_text_texture = NULL;
 		}
 
-		SDL_DestroySurface(temp_text_surface);
+		SDL_FreeSurface(temp_text_surface);
 		temp_text_surface = NULL;
 }
 
