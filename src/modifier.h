@@ -2,9 +2,9 @@
 #define _MODIFIER_H_
 
 #include <stdint.h>
-#include <openssl/evp.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 enum Modifier_Errors {
 	ERROR_INPUT_FILE_NOT_FOUND = 0x01,
@@ -12,11 +12,6 @@ enum Modifier_Errors {
 	ERROR_READING_INPUT_FILE = 0x04,
 	ERROR_TARGET_NOT_FOUND = 0x08,
 	ERROR_MULTIPLE_TARGET_LOCATION = 0x10,
-	ERROR_UNKNOWN_MESSAGE_DIGEST_MD5 = 0x20,
-	ERROR_MESSAGE_DIGEST_CREATE_FAILED = 0x40,
-	ERROR_MESSAGE_DIGEST_INITIALIZATION_FAILED = 0x80,
-	ERROR_MESSAGE_DIGEST_UPDATE_FAILED = 0x100,
-	ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED = 0x200,
 	ERROR_WRITING_BACKUP_FILE = 0x400,
 	ERROR_MODIFYING_FILE = 0x800,
 	ERROR_MD5_SUM_DOESNT_MATCH = 0x1000,
@@ -67,10 +62,9 @@ class Modifier {
 		int replace_bytes(const uint8_t* target, const uint32_t target_size, const uint8_t* replace_string, const uint32_t replace_string_size);
 
 		/**
-		 * @return bitwise or of error from modifiers error
-		 * @return 0 on success
+		 * @brief will save md5sum to md5_checksum variable  
 		 */
-		int get_md5();
+		void get_md5();
 		
 		/**
 		 * @brief close files and clear md5_checksum
@@ -80,8 +74,8 @@ class Modifier {
 		FILE* input_file;
 		FILE* backup_file;
 
-		char* md5_checksum;
-		uint32_t file_size;
+		char md5_checksum[33];
+		uint64_t file_size;
 
 		uint8_t* file_content;
 };

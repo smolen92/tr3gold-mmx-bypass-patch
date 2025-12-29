@@ -107,26 +107,6 @@ int main(int argc, char **argv) {
 			promt_scene.add_text(new Text("Error: Cannot open backup file", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
 
-		if( files_status & ERROR_UNKNOWN_MESSAGE_DIGEST_MD5) {
-			promt_scene.add_text(new Text("Error: Unknown message digest md5", FONT_SIZE*(promt_scene_row++), red_color, font));
-		}
-
-		if( files_status & ERROR_MESSAGE_DIGEST_CREATE_FAILED) {
-			promt_scene.add_text(new Text("Error: Digest create failed", FONT_SIZE*(promt_scene_row++), red_color, font));
-		}
-
-		if( files_status & ERROR_MESSAGE_DIGEST_INITIALIZATION_FAILED) {
-			main_scene.add_text(new Text("Error: Digest initialization failed", FONT_SIZE*(main_scene_row++), red_color, font));
-		}
-
-		if( files_status & ERROR_MESSAGE_DIGEST_UPDATE_FAILED) {
-			promt_scene.add_text(new Text("Error: Message digest update failed", FONT_SIZE*(promt_scene_row++), red_color, font));
-		}
-
-		if( files_status & ERROR_MESSAGE_DIGEST_FINALIZATION_FAILED) {
-			promt_scene.add_text(new Text("Error: Message digest finalization failed", FONT_SIZE*(promt_scene_row++), red_color, font));
-		}
-	
 		if( files_status & ERROR_MD5_SUM_DOESNT_MATCH) {
 			promt_scene.add_text(new Text("Error: Md5 checksum doesn't match", FONT_SIZE*(promt_scene_row++), red_color, font));
 		}
