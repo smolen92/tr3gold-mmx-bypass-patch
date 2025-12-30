@@ -17,7 +17,7 @@ Button::Button(int x, int y, int w, int h, bool active, bool* action, const char
 	
 	this->action = action;
 
-	strlcpy(this->button_text,text,100);
+	strncpy(this->button_text,text,100);
 
 	button_texture = IMG_LoadTexture(renderer, path);
 	if(button_texture == NULL) {

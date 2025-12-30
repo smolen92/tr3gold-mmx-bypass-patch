@@ -47,7 +47,7 @@ int Modifier::load_files(const char* input_file_name, const char* md5_checksum) 
 		return_value |= ERROR_CANNOT_OPEN_BACKUP_FILE;
 	}
 	else {
-		strlcpy(backup_file_name, input_file_name,input_file_name_length);
+		strncpy(backup_file_name, input_file_name,input_file_name_length);
 		//change extension from exe to bak
 		strcpy(&backup_file_name[input_file_name_length-3], "bak"); //flawfinder: ignore
 

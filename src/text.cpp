@@ -1,7 +1,7 @@
 #include "text.h"
 
 Text::Text(const char* t, float y_position, SDL_Color c, TTF_Font* font) {
-	strlcpy(this->text, t, 100);
+	strncpy(this->text, t, 100);
 
 	this->color = c;
 	

@@ -15,7 +15,7 @@ endif
 
 
 ifeq ($(PLATFORM), windows)
-	CXXFLAGS += -I"C:\SDL3" -L"C:\SDL3"
+	CXXFLAGS += -I"C:\SDL3\i686-w64-mingw32\include" -L"C:\SDL3\i686-w64-mingw32\lib"
 	OUTFILE = tr3gold-mmx-bypass.exe
 endif
 
@@ -28,7 +28,7 @@ endif
 
 
 $(OUTFILE): ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o
-	$(CXX) $(CXXFLAGS) $(SDLFLAGS) -o $(OUTFILE) ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o 
+	$(CXX) $(CXXFLAGS) -o $(OUTFILE) ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o $(SDLFLAGS) 
 
 ./obj/main.o: ./src/main.cpp ./obj/modifier.o ./obj/gui.o
 	$(CXX) $(CXXFLAGS) -o ./obj/main.o -c ./src/main.cpp
