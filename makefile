@@ -22,8 +22,10 @@ endif
 
 ifeq ($(SDL_VER), SDL2)
 	SDLFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
+	CXXFLAGS += -DSDL_VER2
 else
 	SDLFLAGS = -lSDL3 -lSDL3_image -lSDL3_ttf
+	CXXFLAGS += -DSDL_VER3
 endif
 
 
