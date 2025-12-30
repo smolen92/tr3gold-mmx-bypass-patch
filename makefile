@@ -1,12 +1,34 @@
+PLATFORM=linux
+SDL_VER=SDL3
+MODE=debug
+OUTFILE=tr3gold-mmx-bypass.out
+
+
 CXX = g++
 
-CXXFLAGS = -Wall -g -lSDL2 -lSDL2_ttf -lSDL2_image
+CXXFLAGS = -Wall 
 
-tr3gold-mmx-bypass.out: ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o
-	$(CXX) $(CXXFLAGS) -o tr3gold-mmx-bypass.out ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o
 
-tr3gold-mmx-bypass.exe: ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o
-	$(CXX) $(CXXFLAGS) -o tr3gold-mmx-bypass.exe ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o -I"C:\Program Files\OpenSSL-Win64\include" -L"C:\Program Files\OpenSSL-Win64\lib\VC\x64\MT"
+ifeq ($(MODE), debug) 
+	CXXFLAGS += -g
+endif
+
+
+ifeq ($(PLATFORM), windows)
+	CXXFLAGS += -I"C:\SDL3" -L"C:\SDL3"
+	OUTFILE = tr3gold-mmx-bypass.exe
+endif
+
+
+ifeq ($(SDL_VER), SDL2)
+	SDLFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
+else
+	SDLFLAGS = -lSDL3 -lSDL3_image -lSDL3_ttf
+endif
+
+
+$(OUTFILE): ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o
+	$(CXX) $(CXXFLAGS) $(SDLFLAGS) -o $(OUTFILE) ./obj/main.o ./obj/text.o ./obj/button.o ./obj/scene.o ./obj/modifier.o ./obj/gui.o 
 
 ./obj/main.o: ./src/main.cpp ./obj/modifier.o ./obj/gui.o
 	$(CXX) $(CXXFLAGS) -o ./obj/main.o -c ./src/main.cpp
