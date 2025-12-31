@@ -15,7 +15,7 @@ endif
 
 
 ifeq ($(PLATFORM), windows)
-	CXXFLAGS += -I"C:\SDL3\i686-w64-mingw32\include" -L"C:\SDL3\i686-w64-mingw32\lib"
+	CXXFLAGS += -I"C:\SDL3\i686-w64-mingw32\include" -L"C:\SDL3\i686-w64-mingw32\lib" -static-libgcc -static-libstdc++
 	OUTFILE = tr3gold-mmx-bypass.exe
 endif
 
@@ -60,3 +60,6 @@ clean:
 
 clean-doc:
 	rm -r ./doc/*
+
+clean-windows:
+	del ./obj/*.o

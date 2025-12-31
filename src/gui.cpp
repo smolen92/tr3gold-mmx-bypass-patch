@@ -29,10 +29,11 @@ int Gui::gui_init(TTF_Font** font) {
 	#endif
 
 	#ifdef SDL_VER3
-		window = SDL_CreateWindow("Patch GUI", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_VULKAN);
+		window = SDL_CreateWindow("Patch GUI", WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 	#endif
 	if( window == NULL) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());
+		return 1;
 	}
 
 	#ifdef SDL_VER2
@@ -44,6 +45,7 @@ int Gui::gui_init(TTF_Font** font) {
 	#endif
 	if(renderer == NULL) {
 		fprintf(stderr, "Error: %s\n", SDL_GetError());
+		return 1;
 	}
 
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);

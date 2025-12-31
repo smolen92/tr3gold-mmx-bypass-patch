@@ -51,7 +51,7 @@ int Modifier::load_files(const char* input_file_name, const char* md5_checksum) 
 		//change extension from exe to bak
 		strcpy(&backup_file_name[input_file_name_length-3], "bak"); //flawfinder: ignore
 
-		backup_file = fopen(backup_file_name, "wbx"); //flawfinder: ignore
+		backup_file = fopen(backup_file_name, "wb"); //flawfinder: ignore
 		if( backup_file == NULL) {
 			return_value |= ERROR_CANNOT_OPEN_BACKUP_FILE;
 		}
