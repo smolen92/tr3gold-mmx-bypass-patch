@@ -1,13 +1,7 @@
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 
-#ifdef SDL_VER2
-	#include <SDL2/SDL_image.h>
-#endif
-
-#ifdef SDL_VER3
-	#include <SDL3_image/SDL_image.h>
-#endif
+#include <SDL3_image/SDL_image.h>
 
 #include "text.h"
 
@@ -45,13 +39,7 @@ class Button {
 		void render(SDL_Renderer* renderer, TTF_Font* font);
 		/// \endcond
 	private:
-		#ifdef SDL_VER2
-			SDL_Rect button_rect;
-		#endif
-
-		#ifdef SDL_VER3
-			SDL_FRect button_rect;
-		#endif
+		SDL_FRect button_rect;
 
 		SDL_Color button_color;
 		bool previous_state;

@@ -76,13 +76,7 @@ void Button::render(SDL_Renderer* renderer, TTF_Font* font) {
 	if(button_texture == NULL) return;
 	SDL_SetTextureColorMod(button_texture, button_color.r, button_color.g, button_color.b);
 	
-	#ifdef SDL_VER2
-		SDL_RenderCopy(renderer, button_texture, NULL, &button_rect);
-	#endif
-
-	#ifdef SDL_VER3
-		SDL_RenderTexture(renderer, button_texture, NULL, &button_rect);
-	#endif
+	SDL_RenderTexture(renderer, button_texture, NULL, &button_rect);
 
 	Text::render(button_rect.x+15, button_rect.y, this->button_text, {0,0,0,0xFF}, font, renderer);
 }

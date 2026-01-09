@@ -1,31 +1,20 @@
 PLATFORM=linux
-SDL_VER=SDL3
 MODE=debug
 OUTFILE=tr3gold-mmx-bypass.out
-
 
 CXX = g++
 
 CXXFLAGS = -Wall 
 
+SDLFLAGS = -lSDL3 -lSDL3_image -lSDL3_ttf
 
 ifeq ($(MODE), debug) 
 	CXXFLAGS += -g
 endif
 
-
 ifeq ($(PLATFORM), windows)
 	CXXFLAGS += -I"C:\SDL3\i686-w64-mingw32\include" -L"C:\SDL3\i686-w64-mingw32\lib" -static-libgcc -static-libstdc++
 	OUTFILE = tr3gold-mmx-bypass.exe
-endif
-
-
-ifeq ($(SDL_VER), SDL2)
-	SDLFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
-	CXXFLAGS += -DSDL_VER2
-else
-	SDLFLAGS = -lSDL3 -lSDL3_image -lSDL3_ttf
-	CXXFLAGS += -DSDL_VER3
 endif
 
 

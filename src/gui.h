@@ -48,13 +48,7 @@ class Gui {
 		/// \endcond
 	private:
 		SDL_Window* window;
-		#ifdef SDL_VER2
-			int mouse_x, mouse_y;
-		#endif
-
-		#ifdef SDL_VER3
-			float mouse_x, mouse_y;
-		#endif
+		float mouse_x, mouse_y;
 
 		bool left_mouse_button_down;
 };

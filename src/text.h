@@ -5,15 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef SDL_VER2
-	#include <SDL2/SDL.h>
-	#include <SDL2/SDL_ttf.h>
-#endif
-
-#ifdef SDL_VER3
-	#include <SDL3/SDL.h>
-	#include <SDL3_ttf/SDL_ttf.h>
-#endif
+#include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 #define FONT_SIZE 28
 
